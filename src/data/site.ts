@@ -4,7 +4,7 @@ export const site = {
   short: 'Enrique Acosta',
   role: 'Mechatronics Engineer',
   tagline: 'Machines, motion and lab automation',
-  statement: 'I build machines end to end.',
+  statement: 'I build machines, end to end.',
   description: 'Mechatronics engineer who designs, builds and programs precision machines, from ball screws and capstan drives to embedded control and 3D-vision pipelines.',
   email: 'ejacodel@gmail.com',
   linkedin: 'https://www.linkedin.com/in/ejacodel',
