@@ -1,0 +1,32 @@
+---
+import { site } from '../../data/site';
+const year = new Date().getFullYear();
+---
+<footer class="ftr tone-slab no-print" id="contact">
+  <div class="holes" aria-hidden="true"></div>
+  <div class="wrap inner">
+    <p class="t-label soft">Available full-time from July 2027</p>
+    <a class="mail t-display t-l" href={`mailto:${site.email}`}>Let's build something<span class="arr" aria-hidden="true"> &rarr;</span></a>
+    <div class="links">
+      <a class="btn" href={`mailto:${site.email}`}>{site.email}</a>
+      <a class="btn" href={site.linkedin} rel="me">LinkedIn</a>
+      <a class="btn" href={site.github} rel="me">GitHub</a>
+      <a class="btn solid" href={site.cvPdf} download>CV PDF &darr;</a>
+    </div>
+    <p class="t-mono soft end">{site.name}, {year}. Designed and built with AI assistance.</p>
+  </div>
+</footer>
+<style>
+  .ftr { position: relative; overflow: hidden; padding-block: clamp(56px, 8vw, 120px) var(--g); border-top: var(--rule-heavy) solid #fff; }
+  /* Formwork tie holes, the concrete echo of the dot-matrix name. */
+  .holes { position: absolute; inset: 0; background-image: radial-gradient(circle at center, #000 0 7px, #4c4c4a 7.5px 8.5px, transparent 9px); background-size: 25% 50%; background-position: 12.5% 25%; opacity: .75; pointer-events: none; }
+  .inner { position: relative; display: flex; flex-direction: column; gap: 1.1rem; }
+  .mail { display: inline-block; text-decoration: none; max-width: 14ch; font-size: clamp(3rem, 9vw, 10rem); }
+  .mail:hover { background: #fff; color: #0a0a0a; width: fit-content; }
+  .links { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .8rem; }
+  .btn { background: #222; }
+  .btn:hover { background: #fff; color: #0a0a0a; }
+  .btn.solid { background: #fff; color: #0a0a0a; }
+  .btn.solid:hover { background: #0a0a0a; color: #fff; }
+  .end { margin-top: clamp(40px, 6vw, 96px); }
+</style>

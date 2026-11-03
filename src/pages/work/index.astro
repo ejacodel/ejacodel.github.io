@@ -1,0 +1,73 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import WorkRow from '../../components/site/WorkRow.astro';
+import { smallWork } from '../../data/small';
+
+const work = (await getCollection('work', (e) => !e.data.draft)).sort((a, b) => a.data.order - b.data.order);
+const filters = ['All', ...new Set(work.flatMap((e) => e.data.disciplines))];
+---
+<Base title="Work" description="Machines, electronics and software projects by Enrique Acosta.">
+  <section class="tone-black intro">
+    <div class="wrap">
+      <h1 class="t-display t-xxl">Work</h1>
+      <div class="filters no-print" role="group" aria-label="Filter by discipline">
+        {filters.map((f, i) => <button class="btn" type="button" data-filter={f} aria-pressed={i === 0 ? 'true' : 'false'}>{f}</button>)}
+      </div>
+    </div>
+  </section>
+
+  <section class="tone-white list">
+    <div class="wrap">
+      <div id="rows">{work.map((entry) => <WorkRow {entry} />)}</div>
+    </div>
+  </section>
+
+  <section class="tone-concrete small" id="small">
+    <div class="wrap">
+      <h2 class="t-display t-l">Smaller things</h2>
+      <div class="entries">
+        {smallWork.map((s) => (
+          <details>
+            <summary>
+              <span class="t-display t-m">{s.title}</span>
+              <span class="t-label">{s.year}</span>
+              <span class="plus" aria-hidden="true"></span>
+            </summary>
+            <p>{s.text}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-filter]');
+  const rows = document.querySelectorAll<HTMLElement>('#rows > a');
+  buttons.forEach((button) => button.addEventListener('click', () => {
+    const value = button.dataset.filter!;
+    buttons.forEach((b) => b.setAttribute('aria-pressed', String(b === button)));
+    rows.forEach((row) => (row.hidden = value !== 'All' && !row.dataset.disciplines!.split(',').includes(value)));
+  }));
+</script>
+
+<style>
+  .intro { padding-block: clamp(24px, 4vw, 64px) clamp(20px, 2.5vw, 36px); }
+  .filters { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: clamp(20px, 3vw, 44px); }
+  .list { padding-block: 0 clamp(36px, 5vw, 80px); }
+  .list :global(a[hidden]) { display: none; }
+  .list :global(.row:first-child) { border-top: 0; }
+  .small { padding-block: clamp(36px, 6vw, 96px); }
+  .entries { margin-top: clamp(20px, 3vw, 44px); border-top: var(--rule-heavy) solid var(--line); }
+  details { border-bottom: var(--rule) solid var(--line); }
+  summary { display: grid; grid-template-columns: minmax(0, 1fr) auto 18px; gap: 1.2rem; align-items: center; padding: .8rem 0; cursor: pointer; list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  summary:hover { background: var(--fg); color: var(--bg); box-shadow: -.5rem 0 0 var(--fg), .5rem 0 0 var(--fg); }
+  .plus { position: relative; width: 16px; height: 16px; }
+  .plus::before, .plus::after { content: ""; position: absolute; background: currentColor; }
+  .plus::before { left: 0; right: 0; top: 7px; height: 2px; }
+  .plus::after { top: 0; bottom: 0; left: 7px; width: 2px; }
+  details[open] .plus::after { display: none; }
+  details p { max-width: 62ch; padding: 0 0 1.1rem; font-weight: 500; line-height: 1.4; }
+</style>

@@ -1,0 +1,29 @@
+---
+/**
+ * Scrubs a rendered frame sequence as the page scrolls (Blender exploded views, axis motion).
+ *   <ScrollSequence pattern="robot/explode/####.webp" count={120} brief="..." />
+ * `pattern` is relative to public/media/, and #### is the 1-based zero-padded frame number.
+ */
+import Placeholder from './Placeholder.astro';
+import { mediaUrl, publicExists } from '../../lib/media';
+interface Props { pattern: string; count: number; alt?: string; caption?: string; brief?: string; ratio?: string; height?: string; }
+const { pattern, count, alt = '', caption, brief, ratio = '16/9', height = '320vh' } = Astro.props;
+const first = pattern.replace(/#+/, (m) => '1'.padStart(m.length, '0'));
+const ready = publicExists(first);
+---
+{ready ? (
+  <x-sequence pattern={mediaUrl(pattern)} count={count} style={`height:${height}`}>
+    <div class="stage"><canvas role="img" aria-label={alt}></canvas></div>
+  </x-sequence>
+) : (
+  <div class="wrap"><Placeholder kind={`Scroll sequence / ${count} frames`} path={`public/media/${pattern}`} {brief} {ratio} /></div>
+)}
+{caption && <p class="t-mono soft wrap cap">{caption}</p>}
+<script>import '../../scripts/sequence';</script>
+<style>
+  x-sequence { display: block; }
+  .stage { position: sticky; top: var(--hdr); height: calc(100svh - var(--hdr)); display: grid; place-items: center; overflow: hidden; }
+  canvas { width: 100%; height: 100%; object-fit: contain; }
+  .cap { padding-block: .6rem 0; }
+  @media (prefers-reduced-motion: reduce) { x-sequence { height: auto !important; } .stage { position: relative; top: 0; height: 80vh; } }
+</style>

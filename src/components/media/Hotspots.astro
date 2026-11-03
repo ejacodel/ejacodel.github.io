@@ -1,0 +1,60 @@
+---
+/**
+ * An image with numbered pins. Hovering or focusing a pin explains that part.
+ * Use it for UI screenshots, CAD renders and board photos. x and y are percentages of the image.
+ *   <Hotspots src="robot/ui-scan.png" points={[{ x: 70, y: 43, title: '3D view', text: '...' }]} />
+ */
+import Pic from './Pic.astro';
+import Placeholder from './Placeholder.astro';
+import { findImage } from '../../lib/media';
+interface Point { x: number; y: number; title: string; text: string; }
+interface Props { src: string; alt?: string; points: Point[]; caption?: string; ratio?: string; brief?: string; kind?: string; }
+const { src, alt = '', points, caption, ratio = '16/10', brief, kind = 'Screenshot' } = Astro.props;
+const exists = !!(await findImage(src));
+---
+<figure class="h">
+  <div class="img" style={`aspect-ratio:${ratio}`}>
+    {exists ? <Pic {src} {alt} sizes="(max-width: 800px) 100vw, 75vw" /> : <Placeholder {kind} path={`src/media/${src}`} {brief} {ratio} />}
+    {exists && points.map((p, i) => (
+      <button type="button" class="pin t-label" style={`left:${p.x}%;top:${p.y}%`} aria-label={p.title} data-i={i + 1} aria-describedby={`${src}-${i}`}>
+        {i + 1}
+      </button>
+    ))}
+  </div>
+  <ol class="legend">
+    {points.map((p, i) => (
+      <li id={`${src}-${i}`}><span class="t-dot n">{String(i + 1).padStart(2, '0')}</span><div><b>{p.title}</b><p>{p.text}</p></div></li>
+    ))}
+  </ol>
+  {caption && <figcaption class="t-mono soft">{caption}</figcaption>}
+</figure>
+<script>
+  // Hovering a pin highlights its row in the legend, and the other way round.
+  document.querySelectorAll<HTMLElement>('figure.h').forEach((fig) => {
+    const pins = fig.querySelectorAll<HTMLElement>('.pin');
+    const rows = fig.querySelectorAll<HTMLElement>('.legend li');
+    const mark = (i: number, on: boolean) => {
+      pins[i]?.toggleAttribute('data-on', on);
+      rows[i]?.toggleAttribute('data-on', on);
+    };
+    [pins, rows].forEach((list) => list.forEach((el, i) => {
+      el.addEventListener('pointerenter', () => mark(i, true));
+      el.addEventListener('pointerleave', () => mark(i, false));
+      el.addEventListener('focus', () => mark(i, true));
+      el.addEventListener('blur', () => mark(i, false));
+    }));
+  });
+</script>
+<style>
+  .h { margin: 0; min-width: 0; }
+  .img { position: relative; width: 100%; outline: var(--rule) solid var(--line); }
+  .img :global(img) { width: 100%; height: 100%; object-fit: cover; }
+  .pin { position: absolute; width: 28px; height: 28px; margin: -14px 0 0 -14px; display: grid; place-items: center; background: #0a0a0a; color: #fff; border: 2px solid #fff; }
+  .pin:hover, .pin[data-on] { background: #fff; color: #0a0a0a; border-color: #0a0a0a; transform: scale(1.25); }
+  .legend { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0 var(--g); margin-top: var(--g); }
+  .legend li { display: flex; gap: .8rem; padding: .7rem 0; border-top: var(--rule) solid var(--line); font-size: .9rem; line-height: 1.35; }
+  .legend li[data-on] { background: var(--fg); color: var(--bg); box-shadow: -.4rem 0 0 var(--fg), .4rem 0 0 var(--fg); }
+  .legend b { font-weight: 650; }
+  .n { font-size: 1.3rem; }
+  figcaption { padding-top: .55rem; }
+</style>

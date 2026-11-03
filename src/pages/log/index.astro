@@ -1,0 +1,22 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import LogRow from '../../components/site/LogRow.astro';
+const posts = (await getCollection('log', (p) => !p.data.draft)).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+<Base title="Log" description="Build notes, failures and documentation from Enrique Acosta's projects.">
+  <section class="tone-black intro">
+    <div class="wrap">
+      <h1 class="t-display t-xxl">Log</h1>
+      <p class="t-lede">Build notes, decisions and failures, written as the work happens.</p>
+    </div>
+  </section>
+  <section class="tone-white list">
+    <div class="wrap">{posts.map((post) => <LogRow {post} />)}</div>
+  </section>
+</Base>
+<style>
+  .intro { padding-block: clamp(24px, 4vw, 64px); }
+  .intro p { margin-top: 1rem; max-width: 40ch; }
+  .list { padding-block: clamp(20px, 3vw, 44px) clamp(44px, 7vw, 112px); }
+</style>

@@ -1,0 +1,55 @@
+---
+/**
+ * Orbitable Gaussian splat (.sog .spz .ply .splat .ksplat) or mesh (.glb), loaded on click.
+ *   <Viewer3D src="robot/splats/peppercorn.sog" poster="robot/peppercorn-stack.jpg" size="24 MB" />
+ * `src` is in public/media/. `poster` is in src/media/.
+ */
+import Pic from './Pic.astro';
+import Placeholder from './Placeholder.astro';
+import { mediaUrl, publicExists } from '../../lib/media';
+interface Props { src: string; poster?: string; alt?: string; caption?: string; brief?: string; ratio?: string; size?: string; distance?: number; flip?: boolean; standin?: boolean; }
+const { src, poster, alt = '', caption, brief, ratio = '16/9', size, distance = 2.5, flip = true, standin = false } = Astro.props;
+const ready = publicExists(src);
+const isSplat = !/\.glb$/i.test(src);
+---
+<figure class="v">
+  {ready ? (
+    <x-viewer3d src={mediaUrl(src)} distance={distance} flip={String(flip)} state="idle" style={`aspect-ratio:${ratio}`}>
+      <div class="canvas" data-canvas></div>
+      {poster && <div class="poster"><Pic src={poster} alt={alt} /></div>}
+      {standin && <span class="badge">Synthetic test splat / not a scan</span>}
+      <div class="start">
+        <button class="btn solid" data-load type="button">Load 3D {isSplat ? 'splat' : 'model'}{size && ` / ${size}`}</button>
+      </div>
+      <div class="hud">
+        <span class="t-label" data-status>{isSplat ? 'Gaussian splat' : 'Mesh'}</span>
+        <span class="tools">
+          <button class="t-label" data-reset type="button">Reset</button>
+          <button class="t-label" data-full type="button">Full</button>
+        </span>
+      </div>
+    </x-viewer3d>
+  ) : (
+    <Placeholder kind="3D / Gaussian splat" path={`public/media/${src}`} {brief} {ratio} />
+  )}
+  {caption && <figcaption class="t-mono soft">{caption}</figcaption>}
+</figure>
+<script>import '../../scripts/viewer3d';</script>
+<style>
+  .v { margin: 0; min-width: 0; }
+  x-viewer3d { display: block; position: relative; width: 100%; background: #0a0a0a; overflow: hidden; color: #fff; }
+  x-viewer3d:fullscreen { aspect-ratio: auto !important; }
+  .canvas { position: absolute; inset: 0; touch-action: none; cursor: grab; }
+  .canvas:active { cursor: grabbing; }
+  .canvas :global(canvas) { width: 100% !important; height: 100% !important; }
+  .poster { position: absolute; inset: 0; }
+  .poster :global(img) { width: 100%; height: 100%; object-fit: cover; opacity: .75; }
+  .start { position: absolute; inset: 0; display: grid; place-items: center; --fg: #fff; --bg: #0a0a0a; --line: #fff; pointer-events: none; }
+  .start button { pointer-events: auto; }
+  .hud { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; padding: .55rem .7rem; pointer-events: none; }
+  .tools { display: flex; gap: .8rem; pointer-events: auto; }
+  .tools button { text-decoration: underline; text-underline-offset: .2em; }
+  x-viewer3d[state="loading"] .start, x-viewer3d[state="ready"] .start,
+  x-viewer3d[state="ready"] .poster { display: none; }
+  figcaption { padding-top: .55rem; max-width: 70ch; }
+</style>

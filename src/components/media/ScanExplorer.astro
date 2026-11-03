@@ -1,0 +1,118 @@
+---
+/**
+ * Pick a scanned sample, then see it as stacked photo, mesh, textured model or splat.
+ * Sample data and images are in src/data/scans.ts. A view unlocks as soon as its file exists.
+ */
+import Pic from './Pic.astro';
+import Viewer3D from './Viewer3D.astro';
+import { scans } from '../../data/scans';
+import { findImage, publicExists } from '../../lib/media';
+
+const views = [
+  { key: 'stack', label: 'Stacked photo', white: false },
+  { key: 'mesh', label: 'Mesh', white: true },
+  { key: 'texture', label: 'Textured', white: true },
+  { key: 'splat', label: 'Splat', white: false },
+] as const;
+
+const samples = await Promise.all(scans.map(async (s) => {
+  const has: Record<string, boolean> = {
+    stack: !!(await findImage(s.stack)),
+    mesh: !!(await findImage(s.mesh)),
+    texture: !!(await findImage(s.texture)),
+    splat: publicExists(s.splat),
+  };
+  return { ...s, has };
+}));
+---
+<x-scans>
+  <div class="pick" role="tablist" aria-label="Scanned sample">
+    {samples.map((s, i) => (
+      <button class="sample" role="tab" type="button" data-sample={s.id} aria-selected={i === 0 ? 'true' : 'false'}>
+        <span class="t-dot n">{String(i + 1).padStart(2, '0')}</span>
+        <span class="t-display t-m">{s.name}</span>
+      </button>
+    ))}
+  </div>
+
+  <div class="body">
+    <div class="view">
+      {samples.map((s, i) => views.map((v) => s.has[v.key] && (
+        <div class:list={['pane', { white: v.white }]} data-pane={`${s.id}:${v.key}`} hidden={!(i === 0 && v.key === 'stack')}>
+          {v.key === 'splat'
+            ? <Viewer3D src={s.splat!} ratio="auto" />
+            : <Pic src={s[v.key] as string} alt={`${s.name}, ${v.label.toLowerCase()}`} sizes="(max-width: 900px) 100vw, 60vw" />}
+        </div>
+      )))}
+    </div>
+
+    <div class="side">
+      <div class="modes" role="group" aria-label="View">
+        {views.map((v) => <button class="btn" type="button" data-view={v.key} aria-pressed={v.key === 'stack' ? 'true' : 'false'}>{v.label}</button>)}
+      </div>
+      {samples.map((s, i) => (
+        <dl class="data" data-info={s.id} hidden={i !== 0}>
+          <p class="t-lede desc">{s.desc}</p>
+          {s.data.map(([k, v]) => <div><dt class="t-label">{k}</dt><dd>{v}</dd></div>)}
+        </dl>
+      ))}
+    </div>
+  </div>
+  <script is:inline type="application/json" data-has set:html={JSON.stringify(Object.fromEntries(samples.map((s) => [s.id, s.has])))}></script>
+</x-scans>
+
+<script>
+  class XScans extends HTMLElement {
+    connectedCallback() {
+      const has = JSON.parse(this.querySelector('[data-has]')!.textContent!);
+      let sample = this.querySelector<HTMLElement>('[data-sample]')!.dataset.sample!;
+      let view = 'stack';
+      const render = () => {
+        if (!has[sample][view]) view = 'stack';
+        this.querySelectorAll<HTMLElement>('[data-pane]').forEach((p) => (p.hidden = p.dataset.pane !== `${sample}:${view}`));
+        this.querySelectorAll<HTMLElement>('[data-info]').forEach((p) => (p.hidden = p.dataset.info !== sample));
+        this.querySelectorAll<HTMLElement>('[data-sample]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.sample === sample)));
+        this.querySelectorAll<HTMLButtonElement>('[data-view]').forEach((b) => {
+          b.disabled = !has[sample][b.dataset.view!];
+          b.setAttribute('aria-pressed', String(b.dataset.view === view));
+        });
+      };
+      this.addEventListener('click', (e) => {
+        const t = (e.target as HTMLElement).closest<HTMLElement>('[data-sample],[data-view]');
+        if (!t) return;
+        if (t.dataset.sample) sample = t.dataset.sample;
+        if (t.dataset.view) view = t.dataset.view;
+        render();
+      });
+      render();
+    }
+  }
+  customElements.define('x-scans', XScans);
+</script>
+<style>
+  x-scans { display: block; }
+  .pick { display: grid; grid-template-columns: repeat(4, 1fr); border-top: var(--rule-heavy) solid var(--line); }
+  .sample { display: flex; gap: .7rem; align-items: baseline; text-align: left; padding: .8rem .8rem .8rem 0; border-right: var(--rule) solid var(--line); border-bottom: var(--rule) solid var(--line); padding-left: .8rem; }
+  .sample:last-child { border-right: 0; }
+  .sample:hover, .sample[aria-selected="true"] { background: var(--fg); color: var(--bg); }
+  .n { font-size: 1.1rem; }
+  .body { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+  .view { position: relative; aspect-ratio: 5/4; background: #0a0a0a; }
+  .pane { position: absolute; inset: 0; }
+  .pane[hidden] { display: none; }
+  .pane.white { background: #fff; }
+  .pane :global(img) { width: 100%; height: 100%; object-fit: contain; }
+  .pane :global(figure), .pane :global(x-viewer3d) { height: 100%; aspect-ratio: auto !important; }
+  .side { padding: var(--g); display: flex; flex-direction: column; gap: var(--g); border-left: var(--rule) solid var(--line); border-bottom: var(--rule) solid var(--line); }
+  .modes { display: flex; flex-wrap: wrap; gap: .3rem; }
+  .data[hidden] { display: none; }
+  .desc { margin-bottom: 1.1rem; }
+  .data div { display: grid; grid-template-columns: 11ch 1fr; gap: .6rem; padding: .45rem 0; border-top: 1px solid var(--line); align-items: baseline; }
+  dd { font: 500 .875rem/1.3 var(--f-mono); }
+  @media (max-width: 900px) {
+    .pick { grid-template-columns: repeat(2, 1fr); }
+    .sample:nth-child(2) { border-right: 0; }
+    .body { grid-template-columns: 1fr; }
+    .side { border-left: 0; padding-inline: 0; }
+  }
+</style>

@@ -1,0 +1,18 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Not found">
+  <section class="tone-concrete nf">
+    <div class="wrap">
+      <p class="t-dot code">404</p>
+      <h1 class="t-display t-xl">Out of travel.</h1>
+      <p class="t-lede">This page isn't within the axis limits.</p>
+      <a class="btn" href="/">Return to home &rarr;</a>
+    </div>
+  </section>
+</Base>
+<style>
+  .nf { min-height: 70vh; display: flex; align-items: center; padding-block: 48px; }
+  .code { font-size: clamp(6rem, 22vw, 22rem); }
+  .wrap > * + * { margin-top: 1rem; }
+</style>

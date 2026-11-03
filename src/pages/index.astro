@@ -1,0 +1,116 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Pic from '../components/media/Pic.astro';
+import Wipe from '../components/media/Wipe.astro';
+import Stats from '../components/doc/Stats.astro';
+import WorkRow from '../components/site/WorkRow.astro';
+import LogRow from '../components/site/LogRow.astro';
+import Matrix from '../components/site/Matrix.astro';
+import { site } from '../data/site';
+
+const work = (await getCollection('work', (e) => !e.data.draft)).sort((a, b) => a.data.order - b.data.order);
+const posts = (await getCollection('log', (p) => !p.data.draft)).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf()).slice(0, 3);
+---
+<Base>
+  <section class="hero tone-black">
+    <div class="id">
+      <h1 aria-label={site.name}>
+        <span class="t-dot n1" aria-hidden="true">ENRIQUE JOSE</span>
+        <span class="t-dot n2" aria-hidden="true">ACOSTA DE LA RUA</span>
+      </h1>
+      <p class="t-display statement">{site.statement}</p>
+      <p class="t-lede sub">Precision mechanics, motion control, electronics and software, fabricated in my own workshop.</p>
+      <div class="cta">
+        <a class="btn solid" href="/work/macro-photogrammetry-robot/">See the flagship &rarr;</a>
+        <a class="btn" href="/cv/">Read the CV</a>
+      </div>
+    </div>
+    <div class="shot">
+      {/* Swap this for the machine video when it exists. The real slice and stack stay useful further down. */}
+      <Wipe mode="follow" start={0.5} fill labelA="One photo" labelB="Focus stack">
+        <Pic slot="a" src="robot/peppercorn-slice.jpg" alt="Single macro photo of a peppercorn: only a thin band is sharp" sizes="(max-width: 900px) 100vw, 50vw" eager />
+        <Pic slot="b" src="robot/peppercorn-stack.jpg" alt="The same peppercorn after focus stacking: sharp across its whole depth" sizes="(max-width: 900px) 100vw, 50vw" eager />
+      </Wipe>
+      <p class="t-mono cap">A peppercorn, scanned by my robot. Move across the image.</p>
+    </div>
+    <dl class="facts">
+      {site.facts.map(([k, v]) => <div><dt class="t-label soft">{k}</dt><dd>{v}</dd></div>)}
+    </dl>
+  </section>
+
+  <section class="work tone-white" aria-labelledby="work-h">
+    <div class="wrap">
+      <div class="head">
+        <h2 id="work-h" class="t-label">Selected work</h2>
+        <a class="t-label" href="/work/">All work &rarr;</a>
+      </div>
+      <div>{work.map((entry) => <WorkRow {entry} />)}</div>
+    </div>
+  </section>
+
+  <section class="proof tone-black" aria-label="Flagship in numbers">
+    <div class="wrap">
+      <Stats items={[
+        { value: '< €500', label: 'Positioner, materials' },
+        { value: '36 / 36', label: 'Views registered', note: 'In 4 of 5 scans' },
+        { value: '< 0.6 px', label: 'Mean reprojection', note: 'Same 4 scans' },
+        { value: '~570', label: 'Python unit tests' },
+      ]} />
+    </div>
+  </section>
+
+  <section class="skills tone-concrete" aria-labelledby="skills-h">
+    <div class="wrap">
+      <h2 id="skills-h" class="t-display t-xl">Looking for a skill?</h2>
+      <p class="t-lede intro">Each dot links to the project where you can see that skill in use.</p>
+      <Matrix />
+    </div>
+  </section>
+
+  {posts.length > 0 && (
+    <section class="latest tone-white" aria-labelledby="log-h">
+      <div class="wrap">
+        <div class="head">
+          <h2 id="log-h" class="t-label">Latest from the log</h2>
+          <a class="t-label" href="/log/">All notes &rarr;</a>
+        </div>
+        <div>{posts.map((post) => <LogRow {post} />)}</div>
+      </div>
+    </section>
+  )}
+</Base>
+
+<style>
+  .hero { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); grid-template-rows: 1fr auto; min-height: calc(100svh - var(--hdr)); }
+  .id { padding: clamp(24px, 3.2vw, 56px) var(--g); display: flex; flex-direction: column; min-width: 0; }
+  h1 { display: flex; flex-direction: column; align-items: flex-start; font-weight: 400; --size: min(4.15vw, 8.2vh); }
+  .n1 { font-size: var(--size); }
+  .n2 { font-size: var(--size); background: #fff; color: #0a0a0a; padding: .08em .14em .08em 2.1em; margin-top: .14em; margin-left: 0; white-space: nowrap; }
+  .statement { font-size: min(7.3vw, 14vh); margin-top: auto; padding-top: clamp(24px, 4vh, 64px); text-wrap: balance; }
+  .sub { max-width: 34ch; margin-top: 1.1rem; }
+  .cta { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: 1.4rem; }
+  .shot { position: relative; grid-row: 1; grid-column: 2; min-height: 420px; border-left: var(--rule) solid #fff; }
+  .shot :global(figure) { position: absolute; inset: 0; }
+  .cap { position: absolute; top: 10px; left: 10px; padding: .3em .55em; background: #0a0a0a; pointer-events: none; }
+  .facts { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(5, 1fr); border-top: var(--rule) solid #fff; }
+  .facts > div { padding: .75rem var(--g); border-right: var(--rule) solid #fff; display: flex; flex-direction: column; gap: .3rem; font-size: .9375rem; line-height: 1.3; font-weight: 500; }
+  .facts > div:last-child { border-right: 0; }
+  .work, .latest { padding-block: clamp(28px, 4vw, 64px); }
+  .head { display: flex; justify-content: space-between; padding-bottom: .7rem; }
+  .head a { text-underline-offset: .2em; }
+  .work :global(.row:last-child) { border-bottom: var(--rule) solid var(--line); }
+  .proof { padding-block: clamp(32px, 5vw, 72px); }
+  .skills { padding-block: clamp(44px, 7vw, 112px); }
+  .intro { margin-block: 1rem clamp(24px, 3vw, 44px); max-width: 38ch; }
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; grid-template-rows: auto; min-height: 0; }
+    h1 { --size: clamp(1.45rem, 7.4vw, 3.6rem); }
+    .statement { font-size: clamp(3.3rem, 16vw, 7rem); }
+    .n2 { padding-left: 1em; }
+    .shot { grid-column: 1; grid-row: auto; aspect-ratio: 5/4; min-height: 0; border-left: 0; border-top: var(--rule) solid #fff; }
+    .facts { grid-template-columns: 1fr; }
+    .facts > div { border-right: 0; border-bottom: var(--rule) solid #fff; display: grid; grid-template-columns: 11ch 1fr; gap: .6rem; }
+    .facts > div:last-child { border-bottom: 0; }
+  }
+</style>

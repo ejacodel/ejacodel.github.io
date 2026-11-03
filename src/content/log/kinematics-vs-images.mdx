@@ -1,0 +1,31 @@
+---
+title: My robot knew where it was. Not well enough.
+date: 2026-10-22
+summary: I built two reconstruction pipelines and ran them on the same scan. The one that ignored the machine's own kinematics won by a factor of 14.
+project: macro-photogrammetry-robot
+tags: [Reconstruction, Calibration]
+---
+
+The obvious idea with a robot scanner is to use its kinematics. You commanded the axes, so you know where every photo was taken. Why estimate what you already know?
+
+So I built that pipeline: poses from the kinematic model, with a bundle adjustment restricted to the 15 parameters of the assembly. Then I built a second one that estimates poses from the stacked images with structure from motion, and uses the kinematics only to choose which neighbouring views to match.
+
+On the same scan, dense-pair reprojection error went from **4.8 px to 0.35 px**, and triangulated RoMa matches went from **26 % to 98 %**.
+
+<Compare
+  head={['Metric', 'Kinematic poses', 'Image-based']}
+  rows={[
+    ['Dense-pair reprojection', '4.8 px', '0.35 px'],
+    ['RoMa matches triangulated', '26 %', '98 %'],
+    ['Mesh components', '4,461', '82'],
+    ['Boundary loops', '1,074', '96'],
+  ]}
+/>
+
+## What it means
+
+The kinematics aren't bad. The calibration explains a lot of the error: backlash, a pan scale of 1.0132, an X rail 8.45° off the optical axis. But assembly errors on a printed machine are still larger than reconstruction can tolerate at this scale.
+
+So the machine plans the scan and the images fix the poses. Kinematics remain useful as a prior and for planning. They just aren't the final answer.
+
+<Todo>This post was drafted for you from the thesis facts. Its date is a placeholder. Fix it and rewrite this in your own voice before publishing.</Todo>

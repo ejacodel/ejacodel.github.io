@@ -1,0 +1,13 @@
+---
+/**
+ * A note to yourself, highlighted yellow as in your PDFs. Only visible in dev; it never reaches the live site.
+ *   <Todo>Measure accuracy at 3 volumes.</Todo>
+ * All of them are collected on /shotlist.
+ */
+import { isDev } from '../../lib/media';
+---
+{isDev && <p class="todo"><b>TO DO</b> <slot /></p>}
+<style>
+  .todo { background: var(--dev); color: #0a0a0a; padding: .5rem .7rem; font: 500 .8125rem/1.35 var(--f-mono); }
+  b { font-weight: 700; }
+</style>

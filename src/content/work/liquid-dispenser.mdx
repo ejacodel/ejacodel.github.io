@@ -1,0 +1,43 @@
+---
+order: 2
+title: Automated Liquid Dispenser
+short: A lab dispenser with pumps I designed and printed myself. It weighs what it pours and stops on the target mass.
+context: BEng thesis, UPCT
+years: "2025"
+status: Built. Accuracy test still to run
+disciplines: [Mechanics, Electronics, Firmware, Automation, Fabrication]
+problem: Dispensing recipes by hand is slow and repetitive. This machine takes a recipe and doses the materials automatically, using a load cell to close the loop on the mass actually delivered.
+role: Thesis project. Pumps, electronics and control.
+stack: [Peristaltic pumps, NEMA 17, Load cell, HX711, ESP32, OLED UI]
+---
+
+<Chapter title="The machine" tone="white" lede="Two pumps, one scale and a recipe menu.">
+
+<Figure src="dispenser/hero.jpg" alt="The dispenser pouring coloured water" ratio="21/9" brief="The whole machine pouring coloured water. Coloured liquid photographs far better than clear." />
+
+<Split ratio="5/7">
+<div class="prose">
+
+### Pumps
+Two self-designed, self-made **3D-printed peristaltic pumps**, each driven by a NEMA 17 stepper.
+
+### Closed loop
+A **load cell and HX711** measure the dispensed mass, closing the loop on what actually arrived.
+
+### Interface
+An **ESP32** controller, with an OLED screen to choose recipes.
+
+</div>
+<Figure src="dispenser/pump-exploded.jpg" alt="Exploded view of the peristaltic pump" ratio="4/3" kind="Render" brief="Exploded CAD view of the pump: rotor, rollers, tube bed." />
+</Split>
+
+<Gallery cols={3}>
+  <Figure src="dispenser/pump-closeup.jpg" alt="Printed pump with tube" brief="Printed pump with the tube installed." />
+  <Figure src="dispenser/load-cell.jpg" alt="Load cell mount" brief="Load cell and how the vessel sits on it." />
+  <Figure src="dispenser/ui.jpg" alt="OLED recipe screen" brief="OLED recipe screen, close up." />
+</Gallery>
+
+<Video src="dispenser/run.mp4" brief="A recipe running from start to finish, 20 to 40 s." caption="A recipe running." />
+
+<Todo>Measure accuracy: 10 runs at 3 volumes on a 0.01 g scale. Report mean error and CV% as stats at the top of this page.</Todo>
+</Chapter>

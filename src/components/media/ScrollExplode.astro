@@ -1,0 +1,71 @@
+---
+/**
+ * Scroll-driven exploded view of flat layers, such as PCB copper.
+ * Each layer is an SVG or PNG with transparency in public/media/. KiCad can export them directly.
+ * `finished` is the assembled top view that lifts off first.
+ *   <ScrollExplode finished="flash/board.svg" layers={[{ src: 'flash/l1.svg', name: 'L1 / F.Cu', note: '...' }]} />
+ */
+import Placeholder from './Placeholder.astro';
+import { mediaUrl, publicExists } from '../../lib/media';
+interface Layer { src: string; name: string; note?: string; }
+interface Props { layers: Layer[]; finished?: string; standin?: boolean; invert?: boolean; height?: string; title?: string; brief?: string; }
+const { layers, finished, standin = false, invert = false, height = '420vh', title, brief } = Astro.props;
+const ready = layers.every((l) => publicExists(l.src));
+---
+{ready ? (
+  <x-explode style={`height:${height}`}>
+    <div class="stage tone-black" data-stage>
+      {title && <p class="t-label ttl">{title}</p>}
+      <p class="t-dot readout" data-readout aria-hidden="true">Z 000.0 %</p>
+      <div class="scene">
+        <div class="stack" data-stack>
+          {layers.map((l, i) => (
+            <div class="layer" data-layer style={`--i:${i}`}>
+              <i class="sheet"></i>
+              <img class:list={{ invert }} src={mediaUrl(l.src)} alt={`${l.name} artwork`} loading="lazy" />
+            </div>
+          ))}
+          {finished && publicExists(finished) && (
+            <div class="layer top" data-finished><img src={mediaUrl(finished)} alt="Finished board, top view" loading="lazy" /></div>
+          )}
+        </div>
+      </div>
+      <ol class="labels">
+        {layers.map((l) => (
+          <li data-label>
+            <i data-leader></i>
+            <div><b class="t-label">{l.name}</b>{l.note && <span class="t-mono soft">{l.note}</span>}</div>
+          </li>
+        ))}
+      </ol>
+      {standin && <span class="badge">Stand-in artwork / real KiCad export pending</span>}
+    </div>
+  </x-explode>
+) : (
+  <div class="wrap"><Placeholder kind="Exploded view" path={`public/media/${layers[0]?.src}`} {brief} ratio="16/9" /></div>
+)}
+<script>import '../../scripts/explode';</script>
+<style>
+  x-explode { display: block; }
+  .stage { position: sticky; top: var(--hdr); height: calc(100svh - var(--hdr)); overflow: hidden; perspective: 1800px; }
+  .scene { position: absolute; inset: 0; display: grid; place-items: center; transform-style: preserve-3d; padding-right: clamp(0px, 14vw, 240px); }
+  .stack { position: relative; width: min(58vw, 92vh); aspect-ratio: 8/5; transform-style: preserve-3d; will-change: transform; }
+  .layer { position: absolute; inset: 0; transform-style: preserve-3d; will-change: transform; }
+  .layer img { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .layer img.invert { filter: invert(1); }
+  .sheet { position: absolute; inset: 1.75% 1.75%; background: rgb(255 255 255 / .05); outline: 1px solid rgb(255 255 255 / .5); }
+  .ttl { position: absolute; top: 14px; left: calc(var(--g) + var(--rail)); }
+  .readout { position: absolute; left: calc(var(--g) + var(--rail)); bottom: var(--g); font-size: clamp(1.4rem, 3.4vw, 3.4rem); z-index: 2; background: var(--ink); padding: .1em .2em .1em 0; }
+  .labels { list-style: none; position: absolute; inset: 0; pointer-events: none; }
+  .labels li { position: absolute; right: var(--g); width: clamp(120px, 17vw, 260px); opacity: 0; transform: translateY(-50%); }
+  .labels li div { display: flex; flex-direction: column; gap: .2rem; background: var(--ink); padding: .25rem 0 .25rem .6rem; border-left: 2px solid #fff; }
+  .labels i { position: absolute; right: 100%; top: 50%; height: 1px; background: #fff; }
+  @media (max-width: 760px) {
+    .scene { padding-right: 0; align-items: start; padding-top: 16vh; }
+    .stack { width: 76vw; }
+    .labels li { width: 112px; }
+    .labels .soft { display: none; }
+  }
+  x-explode[data-static] { height: auto !important; }
+  x-explode[data-static] .stage { position: relative; top: 0; height: 90vh; }
+</style>

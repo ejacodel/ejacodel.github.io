@@ -1,0 +1,22 @@
+---
+/**
+ * Two columns: text beside its media. Figures sit next to the paragraph they explain.
+ *   <Split ratio="5/7"> <div class="prose">...</div> <Figure .../> </Split>
+ * flip puts the second child first on desktop. sticky keeps the first column in view while the second scrolls.
+ */
+interface Props { ratio?: string; flip?: boolean; sticky?: boolean; align?: 'start' | 'center' | 'end'; }
+const { ratio = '5/7', flip = false, sticky = false, align = 'start' } = Astro.props;
+const [a, b] = ratio.split('/');
+---
+<div class:list={['split', { flip, sticky }]} style={`--a:${a}fr;--b:${b}fr;align-items:${align}`}><slot /></div>
+<style>
+  .split { display: grid; grid-template-columns: minmax(0, var(--a)) minmax(0, var(--b)); gap: clamp(20px, 3.5vw, 64px); }
+  .split > :global(*) { min-width: 0; }
+  .flip { grid-template-columns: minmax(0, var(--b)) minmax(0, var(--a)); }
+  .flip > :global(:first-child) { order: 2; }
+  @media (min-width: 801px) { .sticky > :global(:first-child) { position: sticky; top: calc(var(--hdr) + 20px); } }
+  @media (max-width: 800px) {
+    .split, .flip { grid-template-columns: 1fr; }
+    .flip > :global(:first-child) { order: 0; }
+  }
+</style>

@@ -1,0 +1,15 @@
+---
+const { post } = Astro.props;
+const date = post.data.date.toISOString().slice(0, 10);
+---
+<a class="row" href={`/log/${post.id}/`}>
+  <time class="t-mono" datetime={date}>{date}</time>
+  <span class="t-display t-m ttl">{post.data.title}</span>
+  <span class="sum">{post.data.summary}</span>
+</a>
+<style>
+  .row { display: grid; grid-template-columns: 11ch minmax(0, 6fr) minmax(0, 5fr); gap: var(--g); padding: .9rem 0; border-top: var(--rule) solid var(--line); text-decoration: none; align-items: baseline; }
+  .row:hover { background: var(--fg); color: var(--bg); box-shadow: -.6rem 0 0 var(--fg), .6rem 0 0 var(--fg); }
+  .sum { font-size: .9375rem; line-height: 1.35; }
+  @media (max-width: 800px) { .row { grid-template-columns: 1fr; gap: .35rem; } }
+</style>

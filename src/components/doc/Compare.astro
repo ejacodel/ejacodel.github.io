@@ -1,0 +1,26 @@
+---
+/** Comparison table. The last column is treated as the winning or chosen one. */
+interface Props { head: string[]; rows: string[][]; caption?: string; }
+const { head, rows, caption } = Astro.props;
+---
+<figure class="c">
+  <div class="scroll">
+    <table>
+      <thead><tr>{head.map((h) => <th class="t-label" scope="col">{h}</th>)}</tr></thead>
+      <tbody>{rows.map((r) => <tr>{r.map((v, i) => i === 0 ? <th scope="row">{v}</th> : <td>{v}</td>)}</tr>)}</tbody>
+    </table>
+  </div>
+  {caption && <figcaption class="t-mono soft">{caption}</figcaption>}
+</figure>
+<style>
+  .c { margin: 0; }
+  .scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; border-top: var(--rule-heavy) solid var(--line); }
+  th, td { text-align: left; padding: .6rem .8rem .6rem 0; border-bottom: var(--rule) solid var(--line); font-weight: 400; }
+  tbody th { font-size: .9375rem; line-height: 1.25; }
+  td { font: 500 .9375rem/1.2 var(--f-mono); white-space: nowrap; }
+  th:not(:first-child), td { text-align: right; padding-left: 1rem; padding-right: .6rem; }
+  tr > :last-child { background: var(--fg); color: var(--bg); }
+  thead th:last-child { padding-block: .6rem; }
+  figcaption { padding-top: .55rem; max-width: 70ch; }
+</style>

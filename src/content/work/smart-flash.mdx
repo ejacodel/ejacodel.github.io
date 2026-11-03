@@ -1,0 +1,53 @@
+---
+order: 3
+title: Smart Camera Flash
+short: An ESP32-S3 flash on a 4-layer PCB, controlled from a phone. Hand-soldered down to 0402 and QFN.
+context: Personal project
+years: "2026"
+status: Prototype. Hardware done, firmware and system integration in progress
+disciplines: [Electronics, Firmware]
+problem: A camera flash you can set up and fire from your phone, and use with the phone's own camera, with a small dongle on the camera to trigger it remotely.
+role: Everything. Schematic, layout, assembly and firmware.
+stack: [ESP32-S3, Wi-Fi, Bluetooth, KiCad, 4-layer PCB, JLCPCB, "0402", QFN]
+---
+
+<Chapter title="Inside the board" tone="black" bleed lede="Scroll to separate the finished PCB into its four copper layers.">
+  <ScrollExplode
+    standin
+    title="Stack-up / 4 layers"
+    finished="flash/standin/board.svg"
+    layers={[
+      { src: 'flash/standin/l1.svg', name: 'L1 / F.Cu', note: 'Top copper' },
+      { src: 'flash/standin/l2.svg', name: 'L2 / In1.Cu', note: 'Inner copper' },
+      { src: 'flash/standin/l3.svg', name: 'L3 / In2.Cu', note: 'Inner copper' },
+      { src: 'flash/standin/l4.svg', name: 'L4 / B.Cu', note: 'Bottom copper' },
+    ]}
+  />
+</Chapter>
+
+<Chapter title="Hardware" tone="white" lede="Designed in KiCad, made by JLCPCB, soldered by hand.">
+
+<Split ratio="5/7">
+<div class="prose">
+
+### Board
+**4-layer PCB** in KiCad, fabricated by JLCPCB and **hand-soldered**, including 0402 passives and QFN packages.
+
+### Connectivity
+**ESP32-S3** with Wi-Fi and Bluetooth. A phone app handles settings and remote control, and lets the flash work with the phone's camera.
+
+### Dongle
+A small dongle on the camera triggers the flash remotely.
+
+</div>
+<Figure src="flash/soldering-macro.jpg" alt="Macro of hand-soldered components" ratio="4/3" brief="Macro of your soldering, shot with the robot's lens. The 0402s and QFN should fill the frame." caption="Hand-soldered 0402 and QFN." />
+</Split>
+
+<Gallery cols={3}>
+  <Figure src="flash/hero.jpg" alt="Flash on a camera" brief="The flash on a camera." />
+  <Figure src="flash/dongle-app.jpg" alt="Dongle and phone app" brief="Dongle on the hot shoe with the phone app on screen." />
+  <Figure src="flash/kicad-layout.png" alt="KiCad layout" kind="Screenshot" brief="KiCad layout with all layers visible." />
+</Gallery>
+
+<Todo>Export the real layers with kicad-cli, drop them in public/media/flash/, update the paths and remove the standin prop above. Fill in the real board size and what each layer carries. See docs/MEDIA.md.</Todo>
+</Chapter>

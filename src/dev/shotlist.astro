@@ -1,0 +1,98 @@
+---
+/**
+ * Dev-only production board: every media slot and <Todo> in the site, read straight from the MDX.
+ * Drop a file at its path and it turns from MISSING to DONE. Open at /shotlist while running `npm run dev`.
+ */
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import Base from '../layouts/Base.astro';
+import { scans } from '../data/scans';
+
+const root = process.cwd();
+const dirs = [['work', 'src/content/work'], ['log', 'src/content/log']];
+
+function attr(tag: string, name: string) {
+  return tag.match(new RegExp(`\\s${name}="([^"]*)"`))?.[1];
+}
+
+const pages = dirs.flatMap(([, dir]) => readdirSync(join(root, dir)).filter((f) => f.endsWith('.mdx')).map((file) => {
+  const body = readFileSync(join(root, dir, file), 'utf8');
+  const shots: { kind: string; path: string; brief?: string; done: boolean }[] = [];
+  for (const m of body.matchAll(/<(Figure|Video|Hotspots|Viewer3D|ScrollSequence|DesignToReality)\b[\s\S]*?\/>/g)) {
+    const [tag, kind] = m;
+    if (kind === 'DesignToReality') {
+      for (const name of ['render', 'real']) {
+        const p = `public/media/${attr(tag, name)}`;
+        shots.push({ kind: `Camera-matched ${name}`, path: p, brief: 'Equal length, framing and timing. See docs/MEDIA.md.', done: existsSync(join(root, p)) });
+      }
+      continue;
+    }
+    if (kind === 'ScrollSequence') {
+      const pattern = attr(tag, 'pattern') ?? '';
+      const first = pattern.replace(/#+/, (x) => '1'.padStart(x.length, '0'));
+      shots.push({ kind: 'Frame sequence', path: `public/media/${pattern}`, brief: attr(tag, 'brief'), done: existsSync(join(root, 'public/media', first)) });
+      continue;
+    }
+    const src = attr(tag, 'src');
+    if (!src) continue;
+    const p = kind === 'Figure' || kind === 'Hotspots' ? `src/media/${src}` : `public/media/${src}`;
+    const synthetic = /\sstandin\b/.test(tag);
+    shots.push({ kind, path: p, brief: attr(tag, 'brief') ?? (synthetic ? 'Synthetic test data. Replace it with a real export.' : undefined), done: !synthetic && existsSync(join(root, p)) });
+  }
+  const todos = [...body.matchAll(/<Todo>([\s\S]*?)<\/Todo>/g)].map((m) => m[1].trim());
+  const explode = /<ScrollExplode[\s\S]*?standin/.test(body);
+  if (explode) shots.unshift({ kind: 'PCB layer exports', path: 'public/media/flash/standin/*.svg', brief: 'Still stand-in artwork. Export the real layers from KiCad, then remove the standin prop. See docs/MEDIA.md.', done: false });
+  if (file.startsWith('macro')) for (const s of scans) if (s.splat) {
+    const p = `public/media/${s.splat}`;
+    shots.push({ kind: 'Sample splat', path: p, brief: `${s.name}. Unlocks the Splat view in Results.`, done: existsSync(join(root, p)) });
+  }
+  return { file, shots, todos };
+})).filter((p) => p.shots.length || p.todos.length);
+
+const all = pages.flatMap((p) => p.shots);
+const done = all.filter((s) => s.done).length;
+---
+<Base title="Shot list">
+  <section class="tone-black head">
+    <div class="wrap">
+      <p class="t-label soft">Dev only / never published</p>
+      <h1 class="t-display t-xl">Shot list</h1>
+      <p class="t-dot count">{done} / {all.length}</p>
+    </div>
+  </section>
+  <section class="tone-white body">
+    <div class="wrap">
+      {pages.map((p) => (
+        <div class="page">
+          <h2 class="t-display t-l">{p.file.replace('.mdx', '')}</h2>
+          {p.todos.length > 0 && <ul class="todos">{p.todos.map((t) => <li>{t}</li>)}</ul>}
+          <table>
+            <tbody>
+              {p.shots.map((s) => (
+                <tr class:list={{ done: s.done }}>
+                  <td class="t-label state">{s.done ? 'Done' : 'Missing'}</td>
+                  <td class="t-label">{s.kind}</td>
+                  <td><code>{s.path}</code>{s.brief && <p>{s.brief}</p>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ))}
+    </div>
+  </section>
+</Base>
+<style>
+  .head { padding-block: 32px; }
+  .count { font-size: clamp(3rem, 8vw, 8rem); margin-top: 1rem; }
+  .body { padding-block: 32px 96px; }
+  .page + .page { margin-top: 64px; }
+  .todos { list-style: none; margin-block: 1rem; display: flex; flex-direction: column; gap: .25rem; }
+  .todos li { background: var(--dev); padding: .4rem .6rem; font: 500 .8125rem/1.35 var(--f-mono); }
+  table { width: 100%; border-collapse: collapse; margin-top: 1rem; border-top: var(--rule-heavy) solid var(--ink); }
+  td { padding: .55rem .9rem .55rem 0; border-bottom: var(--rule) solid var(--ink); vertical-align: top; }
+  .state { color: #0a0a0a; width: 9ch; font-weight: 700; }
+  tr.done { opacity: .4; }
+  code { font: 500 .75rem var(--f-mono); background: var(--dev); padding: .1em .3em; overflow-wrap: anywhere; }
+  td p { font-size: .875rem; line-height: 1.35; margin-top: .3rem; max-width: 80ch; }
+</style>

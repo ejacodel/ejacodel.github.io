@@ -1,0 +1,67 @@
+---
+/** Skill by project. A recruiter searching for "PCB design" finds it and clicks straight to the evidence. */
+import { capabilities, columns } from '../../data/capabilities';
+---
+<div class="scroll">
+  <table class="m">
+    <thead>
+      <tr>
+        <th class="t-label corner" scope="col">Skill / where to see it</th>
+        {columns.map((c) => <th scope="col" class="col" data-col={c.id}><a class="t-label" href={c.href}>{c.label}</a></th>)}
+      </tr>
+    </thead>
+    <tbody>
+      {capabilities.map((row) => (
+        <tr>
+          <th scope="row">
+            <span class="t-display name">{row.name}</span>
+            <span class="t-mono soft">{row.detail}</span>
+          </th>
+          {columns.map((c) => (
+            <td data-col={c.id}>
+              {row.in.includes(c.id)
+                ? <a href={c.href} class="dot" aria-label={`${row.name}: see ${c.label}`}><i></i></a>
+                : <span class="none" aria-hidden="true"></span>}
+            </td>
+          ))}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+<script>
+  document.querySelectorAll<HTMLElement>('table.m').forEach((table) => {
+    let active: string | undefined;
+    table.addEventListener('pointerover', (e) => {
+      const col = (e.target as HTMLElement).closest<HTMLElement>('[data-col]')?.dataset.col;
+      if (col === active) return;
+      active = col;
+      table.querySelectorAll<HTMLElement>('[data-col]').forEach((c) => c.toggleAttribute('data-on', c.dataset.col === col));
+    });
+    table.addEventListener('pointerleave', () => {
+      active = undefined;
+      table.querySelectorAll('[data-on]').forEach((c) => c.removeAttribute('data-on'));
+    });
+  });
+</script>
+<style>
+  .scroll { overflow-x: auto; }
+  .m { width: 100%; min-width: 660px; border-collapse: collapse; border-top: var(--rule-heavy) solid var(--line); }
+  th, td { border-bottom: var(--rule) solid var(--line); }
+  thead th { padding: .7rem .6rem; text-align: center; }
+  .corner { text-align: left !important; padding-left: 0 !important; }
+  .col a { text-decoration: none; }
+  .col a:hover { text-decoration: underline; text-underline-offset: .2em; }
+  tbody th { text-align: left; font-weight: 400; padding: .55rem 1rem .55rem 0; display: flex; flex-direction: column; gap: .15rem; }
+  .name { font-size: clamp(1.2rem, 1.65vw, 1.7rem); line-height: 1; }
+  tbody tr:hover th { background: var(--fg); color: var(--bg); box-shadow: -.5rem 0 0 var(--fg); --soft: currentColor; }
+  td { width: clamp(68px, 9vw, 130px); text-align: center; border-left: var(--rule) solid var(--line); padding: 0; height: 1px; }
+  [data-on]:not(th) { background: var(--fg); }
+  th[data-on] { background: var(--fg); color: var(--bg); }
+  th[data-on] a { color: var(--bg); }
+  .dot { display: grid; place-items: center; width: 100%; height: 100%; min-height: 46px; }
+  .dot i { width: 18px; height: 18px; border-radius: 50%; background: var(--fg); }
+  [data-on] .dot i { background: var(--bg); }
+  .dot:hover i { transform: scale(1.5); }
+  .none { display: block; }
+</style>

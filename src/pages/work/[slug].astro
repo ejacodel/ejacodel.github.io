@@ -1,0 +1,30 @@
+---
+import { getCollection, render } from 'astro:content';
+import Project from '../../layouts/Project.astro';
+import { mdxComponents } from '../../components/mdx';
+import LogRow from '../../components/site/LogRow.astro';
+
+export async function getStaticPaths() {
+  const all = (await getCollection('work', (e) => !e.data.draft)).sort((a, b) => a.data.order - b.data.order);
+  return all.map((entry, i) => ({ params: { slug: entry.id }, props: { entry, next: all[(i + 1) % all.length] } }));
+}
+const { entry, next } = Astro.props;
+const { Content } = await render(entry);
+const posts = (await getCollection('log', (p) => !p.data.draft && p.data.project === entry.id))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+<Project {entry} {next}>
+  <Content components={mdxComponents} />
+  {posts.length > 0 && (
+    <section class="tone-white notes">
+      <div class="wrap">
+        <h2 class="t-label">Build notes on this project</h2>
+        <div class="list">{posts.map((p) => <LogRow post={p} />)}</div>
+      </div>
+    </section>
+  )}
+</Project>
+<style>
+  .notes { padding-block: clamp(36px, 5vw, 80px); }
+  .list { margin-top: .8rem; }
+</style>

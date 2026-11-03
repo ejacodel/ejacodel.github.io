@@ -1,0 +1,49 @@
+---
+/**
+ * Schematic elevation of the positioner, used only until the camera-matched footage exists.
+ * The "cad" and "real" variants share geometry, so the wipe reads as a perfect match.
+ * Illustrative layout, not to scale.
+ */
+interface Props { variant: 'cad' | 'real'; }
+const { variant } = Astro.props;
+const shapes = [
+  { d: 'M90 590H1110V630H90Z', k: 'base' },
+  { d: 'M170 556H960V590H170Z', k: 'rail' },
+  { d: 'M120 530H170V600H120Z', k: 'motor' },
+  { d: 'M170 544H1010', k: 'screw' },
+  { d: 'M500 490H800V556H500Z', k: 'carriage' },
+  { d: 'M545 300H755V490H545Z', k: 'cradle' },
+  { d: 'M650 395m-130 0a130 130 0 1 0 260 0a130 130 0 1 0 -260 0', k: 'drum' },
+  { d: 'M650 395m-46 0a46 46 0 1 0 92 0a46 46 0 1 0 -92 0', k: 'bearing' },
+  { d: 'M820 430m-40 0a40 40 0 1 0 80 0a40 40 0 1 0 -80 0', k: 'small' },
+  { d: 'M570 236H730V262H570Z', k: 'pan' },
+  { d: 'M600 262H700V320H600Z', k: 'panbase' },
+  { d: 'M642 130H658V236H642Z', k: 'pin' },
+  { d: 'M650 110m-28 0a28 28 0 1 0 56 0a28 28 0 1 0 -56 0', k: 'sample' },
+  { d: 'M60 60H250V180H60Z', k: 'camera' },
+  { d: 'M250 85H420V155H250Z', k: 'lens' },
+];
+const labels = [
+  { x: 1000, y: 526, t: 'X / SFU1605 + MGN12' },
+  { x: 860, y: 372, t: 'TILT / CAPSTAN, 32906X' },
+  { x: 760, y: 232, t: 'PAN / GT2 20:60' },
+  { x: 60, y: 208, t: 'FIXED CAMERA' },
+];
+const cad = variant === 'cad';
+---
+<svg viewBox="0 0 1200 680" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Schematic elevation of the three-axis positioner and fixed camera" class={variant}>
+  <rect width="1200" height="680" fill={cad ? '#0a0a0a' : '#6f6d69'} />
+  {!cad && <image href="/textures/concrete-light.webp" width="1200" height="1200" y="-200" opacity=".85" />}
+  {cad && (
+    <g stroke="#2d2d2d" stroke-width="1">
+      {Array.from({ length: 25 }, (_, i) => <path d={`M${i * 50} 0V680`} />)}
+      {Array.from({ length: 14 }, (_, i) => <path d={`M0 ${i * 50}H1200`} />)}
+    </g>
+  )}
+  <path d="M420 120H620" stroke={cad ? '#fff' : '#000'} stroke-width="1.5" stroke-dasharray="14 6 3 6" fill="none" />
+  {shapes.map((s) => (
+    <path d={s.d} fill={cad ? 'none' : s.k === 'sample' ? '#0a0a0a' : s.k === 'drum' ? '#2c2c2b' : s.k === 'bearing' || s.k === 'small' ? '#101010' : '#1b1b1b'}
+      stroke={cad ? '#fff' : '#000'} stroke-width={cad ? 2 : 1.5} />
+  ))}
+  {cad && labels.map((l) => <text x={l.x} y={l.y} fill="#fff" font-family="IBM Plex Mono, monospace" font-size="15" text-anchor={l.x > 900 ? 'end' : 'start'} letter-spacing="1">{l.t}</text>)}
+</svg>

@@ -1,0 +1,17 @@
+---
+/** LABEL | content rows, the signature layout from the CV. rows = [["Label", "Text"], ...] */
+interface Props { rows: [string, string][]; title?: string; }
+const { rows, title } = Astro.props;
+---
+<div class="specs">
+  {title && <p class="t-label ttl">{title}</p>}
+  <dl>
+    {rows.map(([k, v]) => <div><dt class="t-label">{k}</dt><dd set:html={v}></dd></div>)}
+  </dl>
+</div>
+<style>
+  .ttl { padding-bottom: .55rem; }
+  dl > div { display: grid; grid-template-columns: minmax(8ch, 3fr) 9fr; gap: 1rem; padding: .6rem 0; border-top: var(--rule) solid var(--line); align-items: baseline; }
+  dl > div:last-child { border-bottom: var(--rule) solid var(--line); }
+  dd { font-size: .9375rem; line-height: 1.38; }
+</style>

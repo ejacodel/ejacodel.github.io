@@ -1,0 +1,223 @@
+---
+order: 1
+title: Macro-Photogrammetry Robot
+short: A 3-axis robot that digitises objects a few millimetres across, from firmware to textured mesh. Designed, built and programmed alone.
+context: MSc thesis, UPV
+years: 2025–2027
+status: Working. 5 samples scanned; metric calibration still to do
+disciplines: [Mechanics, Firmware, Software, Vision, Fabrication]
+cover: robot/peppercorn-stack.jpg
+problem: Objects a few millimetres across don't fit the depth of field of a macro lens. Scanning one in 3D takes hundreds of focus-stacked photos from known viewpoints. So I built a machine that moves the sample in front of a fixed camera and takes them unattended.
+role: Everything. A self-initiated project that became my thesis. Code is AI-assisted; I set the architecture, review it and test it on the hardware.
+stack: [SolidWorks, Ball screw, Capstan drive, STM32F429, TMC2209, C++, Python, PyTorch, COLMAP, RoMa, Ceres, 3DGS]
+stats:
+  - { value: "< €500", label: "Positioner, materials" }
+  - { value: "1.56 µm", label: "X axis nominal resolution" }
+  - { value: "36 / 36", label: "Views registered", note: "In 4 of 5 scans" }
+  - { value: "28 min", label: "Peppercorn acquisition", note: "641 useful photos" }
+---
+
+<Chapter title="Design to reality" tone="black" bleed lede="The machine as drawn, then as built. Scroll to sweep across, or grab the divider.">
+  <DesignToReality render="robot/d2r-render.mp4" real="robot/d2r-real.mp4" caption="Same camera, same motion: a CAD render matched to real footage of the machine moving." />
+</Chapter>
+
+<Chapter title="Mechanics" tone="white" lede="Three axes stacked under a sample. The camera never moves.">
+
+<Split ratio="5/7" sticky>
+<div class="prose">
+
+### X / focus sweep
+Two MGN12 rails with four MGN12H carriages and an **SFU1605 ball screw** (Ø16, 5 mm lead, 300 mm), direct-driven by a NEMA 17. Nominal resolution is **1.5625 µm** (640 µsteps/mm). Torque and critical speed were sized by calculation.
+
+### Tilt / capstan drive
+The cradle turns on two **preloaded 32906X tapered roller bearings**, driven by a capstan with 45 mm and 120 mm drums. The strap is **1.0 mm PETG, 3D-printed** as a single extrusion line and anchored at both ends with an adjustable tensioner. TPU was tested first and discarded: too elastic.
+
+### Pan / turntable
+NEMA 11 through a **GT2 belt at 20:60**, on a shaft with two bearings. Nominal resolution is 0.0375°.
+
+### Made in my workshop
+PET-CF structural parts, PETG strap, ABS coupling, brass heat-set inserts, CNC-machined MDF base.
+
+</div>
+<div class="stackfig">
+<Figure src="robot/machine-hero.jpg" alt="The positioner" ratio="4/3" brief="Hero: whole machine on black, 3/4 view from slightly below, one hard side light." caption="The finished positioner." />
+<Figure src="robot/capstan-closeup.jpg" alt="Capstan drums and PETG strap" ratio="16/10" brief="Macro: both capstan drums, the printed strap and the tensioner. The most interesting detail on the machine." caption="The capstan drive, with its printed PETG strap." />
+<Figure src="robot/x-axis.jpg" alt="Ball screw and rails" ratio="16/10" brief="Ball screw, rails and printed motor coupling, close up." />
+</div>
+</Split>
+
+<Compare
+  head={['Tilt transmission', 'Worm', 'Printed gears', 'Belt', 'Capstan']}
+  rows={[['Weighted decision score', '2.80', '3.10', '3.35', '4.35']]}
+  caption="The decision matrix behind the capstan drive."
+/>
+
+<Todo>Resolve the real tilt ratio (geometric 2.63 vs 7.672 in firmware) before quoting one. It is deliberately left off this page.</Todo>
+</Chapter>
+
+<Chapter title="Exploded assembly" tone="concrete" bleed lede="Every part of the machine, pulled apart along its own axis as you scroll.">
+  <ScrollSequence pattern="robot/explode/####.webp" count={120} alt="The positioner separating into its parts" brief="Render 120 frames of the exploded assembly in Blender, on a white or black background, 1920 px wide. Name them 0001.webp to 0120.webp." />
+</Chapter>
+
+<Chapter title="Optics and light" tone="black" lede="Depth of field, diffraction and sampling were calculated together, and they settled on f/4.">
+
+<Split ratio="5/7" flip>
+<div class="prose">
+
+Fujifilm X-H2 (40 MP) with a Laowa 65 mm f/2.8 2× Ultra Macro APO, on a fixed tripod. Typical capture is f/4 at 1/20 s with the electronic shutter.
+
+The light is a **custom cross-polarised hexagonal LED ring**: six COB strips in a printed holder, linear polariser film on the light and a circular polariser on the lens, PWM-dimmed at 25 kHz from the controller board.
+
+</div>
+<Figure src="robot/ring-light.jpg" alt="Hexagonal LED ring light on the lens" ratio="4/3" brief="Ring light lit up around the lens, in a dark room." caption="Cross-polarised ring light." />
+</Split>
+
+</Chapter>
+
+<Chapter title="Firmware" tone="white" lede="An unattended machine has to fail safely. Most of the firmware exists for that.">
+
+<Split ratio="7/5" align="start">
+<Figure src="robot/electronics.jpg" alt="Controller board and wiring" ratio="4/3" brief="Octopus Pro and wiring, tidied up, shot top-down." caption="BTT Octopus Pro with three TMC2209 drivers in UART mode." />
+<div class="prose">
+
+### Motion
+C++17 on STM32duino, about 3,200 lines, on an STM32F429. One hardware timer per axis at 2 MHz, trapezoidal ramps up to 40,000 steps/s, step jitter of ±0.45 µs.
+
+### Link
+USB CDC JSON protocol with 20 Hz telemetry.
+
+### Safety
+1 s heartbeat, jog lease, IWDG watchdog, driver health checks over UART, software limits, e-stop, and EEPROM config protected by CRC-32.
+
+### Homing
+StallGuard4 sensorless homing on X with an adaptive threshold: **σ = 28 µm** over 5 runs (range 65.6 µm). Those are commanded positions, not an independent measurement. StallGuard did not work on tilt, where the signal is too noisy.
+
+</div>
+</Split>
+
+</Chapter>
+
+<Chapter title="Software" tone="concrete" lede="About 45,000 lines, AI-assisted, with ~570 Python unit tests. A local web app runs the whole machine.">
+
+<Hotspots
+  src="robot/ui-scan.png"
+  alt="Rig Control web app, Scan tab"
+  ratio="16/10"
+  caption="Scan tab, shown running without the board or camera connected."
+  points={[
+    { x: 23, y: 19, title: 'Motion control', text: 'Jog and position each axis, with limits and homing state.' },
+    { x: 64, y: 19, title: 'Digital twin', text: 'The kinematic model of the positioner, live, for planning and for checking each move.' },
+    { x: 76, y: 87, title: 'Scan plan', text: 'Rings, stations and focus slices, set up as a grid before capture.' },
+    { x: 96, y: 12, title: 'Emergency stop', text: 'Always on screen.' },
+  ]}
+/>
+
+<Split ratio="5/7">
+<div class="prose">
+
+### Camera control with no SDK
+A C# worker speaks **PTP over Windows WPD**: capture, download, and live view at 1024 × 768. Card-only mode cuts each photo from about 1.5 s to about 0.5 s.
+
+### Dimensioning mode
+Mark the front and back of the sample in live view from several angles. The software builds a convex envelope and works out the X range each station needs, so no empty slices are captured.
+
+### Calibration
+An automatic 7 × 5 ArUco pose grid feeds one least-squares fit of camera pose, axis zeros and scales, pan eccentricity and per-axis backlash. Modelling the backlash cut reprojection RMS from **5.76 to 1.67 px**. It also found a pan scale of 1.0132, the X rail 8.45° off the optical axis and the pan axis tilted by 3.3°.
+
+</div>
+<div class="stackfig">
+<Video src="robot/ui-scan-run.mp4" ratio="16/10" kind="Screen capture" brief="Screen capture: the app running a real scan, with the twin moving and images arriving." caption="A scan running from the app." />
+<Figure src="robot/aruco-overlay.jpg" alt="ArUco detection overlay" ratio="16/10" kind="Screen capture" brief="The ArUco detection overlay during calibration." />
+</div>
+</Split>
+
+</Chapter>
+
+<Chapter title="Focus stacking" tone="black" lede="One photo is sharp in a thin band. A stack fuses every slice into one sharp image.">
+
+<Split ratio="8/4" align="end">
+<Wipe labelA="One slice" labelB="Fused stack" ratio="1400/1125" caption="Real data: Peppercorn_01, view r01_s001. Drag the divider.">
+  <Pic slot="a" src="robot/peppercorn-slice.jpg" alt="Single focus slice of a peppercorn" />
+  <Pic slot="b" src="robot/peppercorn-stack.jpg" alt="Fused focus stack of the same peppercorn" />
+</Wipe>
+<div class="prose">
+
+**OpenFocus** is my own GPU stacking engine in PyTorch, modelled on the methods of Helicon Focus. It takes about 25 s per stack of 31 × 40 MP images on an RTX 5070 Ti.
+
+There is also an OpenCV engine using ECC registration and Laplacian-pyramid fusion. Helicon Focus itself runs from the command line as a reference for comparison.
+
+</div>
+</Split>
+
+</Chapter>
+
+<Chapter title="Reconstruction" tone="white" lede="The machine's own kinematics weren't accurate enough. Finding that out changed the design of the pipeline.">
+
+<Pipeline
+  stages={[
+    { name: 'Crop + stack', text: 'Common crop, then GPU focus stacking.', meta: '137 s' },
+    { name: 'Masks', text: 'BiRefNet separates the sample from the background.' },
+    { name: 'SfM', text: 'COLMAP 4.2, then RoMa dense matching and Ceres bundle adjustment.', meta: '409 s' },
+    { name: 'Dense stereo', text: 'Depth from the refined poses.', meta: '81 s' },
+    { name: 'Fusion', text: 'GPU TSDF at 12 µm voxels, then meshing.', meta: '165 s' },
+    { name: 'Texture', text: 'Textured OBJ and GLB.', meta: '158 s' },
+  ]}
+  caption="Pipeline “La Buena”. Times are for Peppercorn_01 on a laptop RTX 5070 Ti; the whole run takes about 21 minutes."
+/>
+
+<Split ratio="5/7" align="end">
+<div class="prose">
+
+### The experiment
+I built two pipelines and ran them on the same scan. One trusted the positioner's kinematics for its poses. The other estimated poses from the images alone.
+
+The result was clear: assembly errors (backlash, flexing, the unresolved tilt ratio) are larger than reconstruction can tolerate. So image-based poses became the default, and kinematics are now used for planning and as a prior.
+
+</div>
+<Compare
+  head={['Metric', 'Kinematic poses', 'La Buena']}
+  rows={[
+    ['Dense-pair reprojection', '4.8 px', '0.35 px'],
+    ['RoMa matches triangulated', '26 %', '98 %'],
+    ['Silhouette IoU', '0.961', '0.984'],
+    ['Photometric NCC', '0.05', '0.47'],
+    ['Mesh components', '4,461', '82'],
+    ['Boundary loops', '1,074', '96'],
+  ]}
+  caption="Same test scan through both pipelines."
+/>
+</Split>
+
+<Todo>Check the timing table in the thesis: the listed stages add up to 950 s, but the total says about 1,270 s. Masks and the other unlisted steps may explain the gap.</Todo>
+</Chapter>
+
+<Chapter title="Results" tone="concrete" lede="Real output from the machine. Pick a sample, then switch between the photo and the model.">
+
+<ScanExplorer />
+
+<Split ratio="5/7" align="center">
+<div class="prose">
+
+### Gaussian splatting
+An exploratory line of work using gsplat, 3DGS-MCMC and 2DGS, on the same registered images. Drag to orbit the viewer.
+
+</div>
+<Viewer3D src="robot/standin-test.splat" standin ratio="16/10" size="1.9 MB" caption="This viewer is working but shows synthetic data, not a scan. Real exports replace it." />
+</Split>
+
+<Video src="robot/scan-timelapse.mp4" ratio="21/9" brief="Time-lapse of a whole unattended scan: wide shot, then each axis close up, then the result rotating. Add captions with the numbers." caption="A full unattended scan." />
+
+</Chapter>
+
+<Chapter title="What isn't solved yet" tone="black" lede="Stated here so you don't have to ask.">
+
+<Specs rows={[
+  ['Metric scale', 'Absolute scale isn\'t calibrated yet. A metrology campaign is planned with a steel ball, a gauge block and a USAF target. Until then, these models aren\'t claimed as measurements.'],
+  ['Green seed', 'A smooth, low-texture seed is unresolved. Image-only SfM registers just 12 of 36 views. With positioner priors all 36 register, but the result is not coherent (about 26 mm across for a millimetric seed).'],
+  ['Tilt ratio', 'The geometric ratio and the value in firmware disagree, so I don\'t quote one. Calibration measures a 0.979 scale against the current setting.'],
+  ['Independent tests', 'The repeatability figure comes from commanded positions. Dial-indicator tests on the carriage are still to do.'],
+]} />
+
+<Todo>Update this table after the metrology campaign and the dial-indicator test.</Todo>
+</Chapter>
+

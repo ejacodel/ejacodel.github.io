@@ -1,0 +1,10 @@
+---
+/** Figures of mixed sizes on a shared grid, all visible at once. There are no carousels on this site. */
+interface Props { cols?: number; }
+const { cols = 3 } = Astro.props;
+---
+<div class="g" style={`--c:${cols}`}><slot /></div>
+<style>
+  .g { display: grid; grid-template-columns: repeat(var(--c), minmax(0, 1fr)); gap: clamp(12px, 1.4vw, 24px); }
+  @media (max-width: 800px) { .g { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,91 @@
+/* ==========================================================================
+   Design system. Change a token here and the whole site follows.
+   Black, white and concrete. Square corners, no shadows, no gradients.
+   Interaction is shown by inverting black and white.
+   ========================================================================== */
+@font-face { font-family: "Doto Black"; src: url("/fonts/DotoBlack-Regular.ttf") format("truetype"); font-display: swap; }
+
+:root {
+  --ink: #0a0a0a; --paper: #fff; --mid: #6d6d6a; --hair: #cfcdc8;
+  --dev: #fff2a8;                                /* dev-only: things still to fill in */
+  --f-display: "Archivo Variable", "Arial Narrow", Arial, sans-serif;
+  --f-text: "Archivo Variable", Arial, sans-serif;
+  --f-mono: "IBM Plex Mono", Consolas, monospace;
+  --f-dot: "Doto Black", "Courier New", monospace;
+  --hdr: 52px;
+  --g: clamp(16px, 2.2vw, 36px);                 /* page gutter */
+  --rule: 2px; --rule-heavy: clamp(6px, .7vw, 10px);
+  --rail: 0px;
+  --fg: var(--ink); --bg: var(--paper); --soft: var(--mid); --line: var(--ink);
+  scroll-padding-top: var(--hdr);
+}
+@view-transition { navigation: auto; }
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; background: var(--ink); }
+body { font: 400 1rem/1.5 var(--f-text); color: var(--fg); background: var(--bg); -webkit-font-smoothing: antialiased; overflow-x: clip; }
+img, video, canvas, svg { display: block; max-width: 100%; }
+a { color: inherit; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; border-radius: 0; }
+:focus-visible { outline: 3px solid currentColor; outline-offset: 2px; }
+::selection { background: var(--ink); color: var(--paper); }
+.tone-black ::selection, .tone-slab ::selection { background: var(--paper); color: var(--ink); }
+
+/* Tones: every section picks one, and children inherit through the variables. */
+.tone-white { --fg: var(--ink); --bg: var(--paper); --soft: var(--mid); --line: var(--ink); color: var(--fg); background: var(--bg); }
+.tone-black { --fg: var(--paper); --bg: var(--ink); --soft: #a3a29e; --line: var(--paper); color: var(--fg); background: var(--bg); }
+.tone-concrete { --fg: var(--ink); --bg: var(--paper); --soft: #353432; --line: var(--ink); color: var(--fg); background: #aeaca7 url("/textures/concrete-light.webp"); }
+.tone-slab { --fg: var(--paper); --bg: #222; --soft: #a9a8a4; --line: var(--paper); color: var(--fg); background: #222 url("/textures/concrete-dark.webp"); }
+
+/* Type */
+.t-display { font-family: var(--f-display); font-stretch: 62%; font-weight: 800; text-transform: uppercase; line-height: .9; letter-spacing: -.012em; }
+.t-xxl { font-size: clamp(3.3rem, 11vw, 12.5rem); }
+.t-xl { font-size: clamp(2.7rem, 7.2vw, 8rem); }
+.t-l { font-size: clamp(2rem, 4vw, 4.4rem); }
+.t-m { font-size: clamp(1.45rem, 2.2vw, 2.3rem); line-height: 1; }
+.t-dot { font-family: var(--f-dot); line-height: 1; letter-spacing: .01em; }
+.t-mono { font-family: var(--f-mono); font-size: .75rem; line-height: 1.45; letter-spacing: .02em; }
+.t-label { font-family: var(--f-mono); font-size: .6875rem; line-height: 1.3; letter-spacing: .1em; text-transform: uppercase; font-weight: 500; }
+.t-lede { font-size: clamp(1.15rem, 1.65vw, 1.6rem); line-height: 1.28; font-weight: 500; font-stretch: 92%; }
+.soft { color: var(--soft); }
+
+/* Structure */
+.wrap { padding-inline: calc(var(--g) + var(--rail)) var(--g); }
+.rule { border-top: var(--rule) solid var(--line); }
+.rule-heavy { border-top: var(--rule-heavy) solid var(--line); }
+
+/* Long-form text inside chapters and posts */
+.prose { max-width: 62ch; font-size: 1.0625rem; line-height: 1.55; }
+.prose > * + * { margin-top: .9em; }
+.prose h3 { font: 500 .75rem/1.3 var(--f-mono); letter-spacing: .1em; text-transform: uppercase; margin-top: 2em; padding-top: .75em; border-top: var(--rule) solid var(--line); }
+.prose h2 { font-family: var(--f-display); font-stretch: 62%; font-weight: 800; text-transform: uppercase; font-size: clamp(1.8rem, 3vw, 3rem); line-height: .95; margin-top: 1.4em; }
+.prose ul { list-style: none; }
+.prose li { padding-left: 1.2em; position: relative; }
+.prose li + li { margin-top: .4em; }
+.prose li::before { content: ""; position: absolute; left: 0; top: .55em; width: .45em; height: .45em; background: currentColor; }
+.prose strong { font-weight: 650; }
+.prose a { text-underline-offset: .18em; text-decoration-thickness: 2px; }
+.prose code { font: .86em var(--f-mono); }
+
+/* Buttons and tags */
+.btn { display: inline-flex; align-items: center; gap: .6em; padding: .72em 1em; border: var(--rule) solid var(--line); font: 500 .75rem/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; text-decoration: none; background: transparent; color: var(--fg); }
+.btn:hover, .btn[aria-pressed="true"], .btn[aria-selected="true"] { background: var(--fg); color: var(--bg); }
+.btn.solid { background: var(--fg); color: var(--bg); }
+.btn.solid:hover { background: transparent; color: var(--fg); }
+.btn[disabled] { opacity: .3; cursor: not-allowed; background: transparent; color: var(--fg); }
+.tags { display: flex; flex-wrap: wrap; gap: .3rem; list-style: none; }
+.tags li { font: 500 .625rem/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; border: 1px solid currentColor; padding: .36em .55em; }
+
+/* Stand-in badge, shown on anything not yet real */
+.badge { position: absolute; z-index: 3; top: 10px; left: 10px; padding: .35em .55em; background: var(--paper); color: var(--ink); border: 1px solid var(--ink); font: 600 .625rem/1 var(--f-mono); letter-spacing: .1em; text-transform: uppercase; pointer-events: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+}
+@media print {
+  html { background: #fff; }
+  .no-print { display: none !important; }
+}
+
+/* A column of figures beside a block of text */
+.stackfig { display: flex; flex-direction: column; gap: clamp(16px, 2vw, 32px); min-width: 0; }

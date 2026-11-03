@@ -1,0 +1,27 @@
+---
+/**
+ * A full-width section of a project page. Its id and title feed the chapter rail automatically.
+ *   <Chapter title="Mechanics" tone="white" lede="...">...</Chapter>
+ * bleed removes the side padding, for pinned or full-width media.
+ */
+import { slug } from '../../lib/slug';
+interface Props { title: string; tone?: 'white' | 'black' | 'concrete' | 'slab'; lede?: string; bleed?: boolean; n?: string; }
+const { title, tone = 'white', lede, bleed = false } = Astro.props;
+const id = slug(title);
+---
+<section {id} class:list={['chapter', `tone-${tone}`]} data-chapter>
+  <header class="wrap head">
+    <div class="rule-heavy"></div>
+    <div class="row">
+      <h2 class="t-display t-xl">{title}</h2>
+      {lede && <p class="t-lede">{lede}</p>}
+    </div>
+  </header>
+  {bleed ? <slot /> : <div class="wrap body"><slot /></div>}
+</section>
+<style>
+  .chapter { padding-block: clamp(36px, 5vw, 80px) clamp(56px, 8vw, 128px); position: relative; }
+  .row { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--g); align-items: end; padding-top: 1rem; margin-bottom: clamp(32px, 4.5vw, 72px); }
+  .body { display: flex; flex-direction: column; gap: clamp(40px, 6vw, 96px); }
+  @media (max-width: 800px) { .row { grid-template-columns: 1fr; } }
+</style>

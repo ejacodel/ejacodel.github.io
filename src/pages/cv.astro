@@ -1,0 +1,129 @@
+---
+/** Web CV. Printing this page (or running `npm run cv:pdf`) produces the downloadable PDF. */
+import Base from '../layouts/Base.astro';
+import Pic from '../components/media/Pic.astro';
+import { cv } from '../data/cv';
+import { site } from '../data/site';
+---
+<Base title="CV" description={cv.profile} footer={false}>
+  <div class="cv">
+    <header class="mast tone-black">
+      <div class="who">
+        <h1 aria-label={site.name}>
+          <span class="t-dot n1" aria-hidden="true">ENRIQUE JOSE</span>
+          <span class="t-dot n2" aria-hidden="true">ACOSTA DE LA RUA</span>
+        </h1>
+        <p class="t-label tagline">{site.role} / {site.tagline}</p>
+        <p class="t-mono contact">
+          <a href={`mailto:${site.email}`}>{site.email}</a> / <a href={site.linkedin}>linkedin.com/in/ejacodel</a> / <a href={site.github}>github.com/ejacodel</a> / <a href={Astro.site}>ejacodel.github.io</a> / Valencia, Spain
+        </p>
+        <a class="btn solid dl no-print" href={site.cvPdf} download>Download PDF &darr;</a>
+      </div>
+      <div class="photo"><Pic src="cv/photo.jpg" alt={`Portrait of ${site.short}`} sizes="240px" eager /></div>
+    </header>
+
+    <div class="sheet">
+      <section class="row"><h2 class="t-label lab">Profile</h2><p class="lead">{cv.profile}</p></section>
+
+      <section class="row">
+        <h2 class="t-label lab">Projects</h2>
+        <div class="items">
+          {cv.projects.map((i) => (
+            <article class="item">
+              <div class="line"><h3>{i.href ? <a href={i.href}>{i.title}</a> : i.title}</h3><span class="when">{i.when}</span></div>
+              <p class="meta">{i.meta}</p>
+              <ul>{i.points.map((p) => <li>{p}</li>)}</ul>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section class="row">
+        <h2 class="t-label lab">Experience</h2>
+        <div class="items">
+          {cv.experience.map((i) => (
+            <article class="item">
+              <div class="line"><h3>{i.href ? <a href={i.href}>{i.title}</a> : i.title}</h3><span class="when">{i.when}</span></div>
+              <p class="meta">{i.meta}</p>
+              <ul>{i.points.map((p) => <li>{p}</li>)}</ul>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section class="row">
+        <h2 class="t-label lab">Education</h2>
+        <div class="items">
+          {cv.education.map((i) => (
+            <article class="item">
+              <div class="line"><h3>{i.title}</h3><span class="when">{i.when}</span></div>
+              <p class="meta">{i.meta}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section class="row">
+        <h2 class="t-label lab">Skills</h2>
+        <dl class="kv">{cv.skills.map(([k, v]) => <div><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
+      </section>
+
+      <section class="row">
+        <h2 class="t-label lab">Languages</h2>
+        <dl class="kv">{cv.languages.map(([k, v]) => <div><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
+      </section>
+
+      <section class="row"><h2 class="t-label lab">Practical</h2><p>{cv.practical}</p></section>
+      <section class="row"><h2 class="t-label lab">Beyond work</h2><p>{cv.beyond}</p></section>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .mast { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+  .who { padding: clamp(20px, 3vw, 44px) var(--g); display: flex; flex-direction: column; gap: .9rem; align-items: flex-start; min-width: 0; }
+  h1 { display: flex; flex-direction: column; align-items: flex-start; font-weight: 400; --size: clamp(1.4rem, 4.6vw, 4.6rem); }
+  .n1 { font-size: var(--size); }
+  .n2 { font-size: var(--size); background: #fff; color: #0a0a0a; padding: .08em .14em .08em 2.1em; margin-top: .14em; white-space: nowrap; }
+  .contact { max-width: 70ch; }
+  .contact a { text-underline-offset: .2em; }
+  .photo { width: clamp(120px, 19vw, 280px); margin-right: var(--g); }
+  .photo :global(img) { width: 100%; height: 100%; object-fit: cover; }
+  .sheet { padding-inline: var(--g); max-width: 1320px; margin-inline: auto; padding-bottom: clamp(44px, 6vw, 96px); }
+  .row { display: grid; grid-template-columns: minmax(110px, 2fr) minmax(0, 10fr); gap: var(--g); padding-block: 1.05rem; border-top: var(--rule) solid var(--ink); line-height: 1.42; }
+  .row:first-child { border-top: 0; }
+  .lab { padding-top: .2rem; }
+  .lead { font-size: clamp(1.1rem, 1.55vw, 1.4rem); line-height: 1.3; font-weight: 500; font-stretch: 94%; max-width: 62ch; }
+  .items { display: flex; flex-direction: column; gap: 1rem; }
+  .line { display: flex; justify-content: space-between; gap: 1rem; align-items: baseline; }
+  h3 { font-size: 1rem; font-weight: 650; }
+  h3 a { text-underline-offset: .18em; }
+  .when { font: 500 .75rem var(--f-mono); white-space: nowrap; }
+  .meta { color: var(--mid); font-size: .9375rem; }
+  .item ul { list-style: none; margin-top: .3rem; max-width: 86ch; font-size: .9375rem; }
+  .item li { padding-left: 1em; position: relative; margin-top: .22rem; }
+  .item li::before { content: ""; position: absolute; left: 0; top: .55em; width: .35em; height: .35em; background: currentColor; }
+  .kv > div { display: grid; grid-template-columns: 14ch minmax(0, 1fr); gap: .8rem; padding-block: .22rem; font-size: .9375rem; }
+  dt { font-weight: 650; }
+  @media (max-width: 620px) {
+    .mast { grid-template-columns: 1fr; }
+    .photo { display: none; }
+    .row { grid-template-columns: 1fr; gap: .5rem; }
+    .kv > div { grid-template-columns: 1fr; gap: 0; }
+  }
+  @media print {
+    @page { size: A4; margin: 0; }
+    :global(html), :global(body) { font-size: 12px; }
+    :global(.hdr) { display: none !important; }
+    .cv { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .mast { break-inside: avoid; }
+    .who { padding: 7mm 11mm; }
+    .photo { width: 36mm; margin-right: 11mm; }
+    h1 { --size: 26pt; }
+    .sheet { padding: 0 11mm 6mm; max-width: none; }
+    .row { padding-block: 2.8mm; grid-template-columns: 24mm 1fr; gap: 4mm; break-inside: avoid; }
+    .item, .kv > div { break-inside: avoid; }
+    .lead { font-size: 10.6pt; }
+    a { text-decoration: none; }
+  }
+</style>

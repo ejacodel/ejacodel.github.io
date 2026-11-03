@@ -1,0 +1,29 @@
+---
+/** Big numbers. Use only what you can defend in an interview. `note` holds the measurement caveat. */
+interface Stat { value: string; label: string; note?: string; }
+interface Props { items: Stat[]; }
+const { items } = Astro.props;
+---
+<dl class="stats" style={`--n:${items.length}`}>
+  {items.map((s) => (
+    <div>
+      <dd class="t-dot v">{s.value}</dd>
+      <dt class="t-label">{s.label}</dt>
+      {s.note && <dd class="t-mono soft">{s.note}</dd>}
+    </div>
+  ))}
+</dl>
+<style>
+  .stats { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); border-top: var(--rule-heavy) solid var(--line); }
+  .stats > div { padding: 1rem clamp(10px, 1.2vw, 20px) 1.1rem; border-right: var(--rule) solid var(--line); display: flex; flex-direction: column; gap: .4rem; min-width: 0; }
+  .stats > div:first-child { padding-left: 0; }
+  .stats > div:last-child { border-right: 0; }
+  .v { font-size: clamp(1.9rem, 3.5vw, 3.8rem); white-space: nowrap; }
+  @media (max-width: 800px) {
+    .stats { grid-template-columns: 1fr 1fr; }
+    .stats > div { padding-left: 10px; border-bottom: var(--rule) solid var(--line); }
+    .stats > div:nth-child(odd) { padding-left: 0; }
+    .stats > div:nth-child(even) { border-right: 0; }
+    .v { font-size: 1.9rem; }
+  }
+</style>

@@ -1,0 +1,10 @@
+---
+/** A responsive image from src/media/. Renders nothing if the file doesn't exist. Figure wraps it with captions and placeholders. */
+import { Image } from 'astro:assets';
+import { findImage } from '../../lib/media';
+interface Props { src: string; alt: string; sizes?: string; class?: string; eager?: boolean; }
+const { src, alt, sizes = '(max-width: 800px) 100vw, 60vw', class: cls, eager = false } = Astro.props;
+const meta = await findImage(src);
+const widths = meta ? [480, 800, 1200, 1800, 2400].filter((w) => w < meta.width).concat(meta.width) : [];
+---
+{meta && <Image src={meta} {alt} {widths} {sizes} class={cls} format="webp" quality={82} loading={eager ? 'eager' : 'lazy'} decoding="async" />}

@@ -1,0 +1,29 @@
+---
+/**
+ * A muted looping clip that plays only while on screen.
+ *   <Video src="robot/scan-timelapse.mp4" poster="robot/scan-timelapse.jpg" caption="..." brief="..." />
+ * Add controls for footage with narration or anything people will want to pause.
+ * The file goes in public/media/. The poster is optional.
+ */
+import Placeholder from './Placeholder.astro';
+import { mediaUrl, publicExists } from '../../lib/media';
+interface Props { src: string; poster?: string; caption?: string; brief?: string; ratio?: string; controls?: boolean; kind?: string; }
+const { src, poster, caption, brief, ratio = '16/9', controls = false, kind = 'Video' } = Astro.props;
+const exists = publicExists(src);
+const posterUrl = poster && publicExists(poster) ? mediaUrl(poster) : undefined;
+---
+<figure class="vid">
+  <x-video class="frame" style={`aspect-ratio:${ratio}`}>
+    {exists
+      ? <video src={mediaUrl(src)} poster={posterUrl} muted={!controls} loop={!controls} playsinline preload="none" controls={controls}></video>
+      : <Placeholder {kind} path={`public/media/${src}`} {brief} {ratio} />}
+  </x-video>
+  {caption && <figcaption class="t-mono soft">{caption}</figcaption>}
+</figure>
+<script>import '../../scripts/video';</script>
+<style>
+  .vid { margin: 0; min-width: 0; }
+  .frame { display: block; position: relative; overflow: hidden; width: 100%; background: #0a0a0a; }
+  video { width: 100%; height: 100%; object-fit: cover; }
+  figcaption { padding-top: .55rem; max-width: 70ch; }
+</style>

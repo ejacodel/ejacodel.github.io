@@ -1,0 +1,115 @@
+---
+/**
+ * Every project page has the same top: a recruiter gets the whole story in one screen
+ * (problem, role, status, numbers, stack) before choosing to go deeper in the chapters.
+ */
+import Base from './Base.astro';
+import Pic from '../components/media/Pic.astro';
+import Stats from '../components/doc/Stats.astro';
+import { chaptersIn } from '../lib/slug';
+import { findImage } from '../lib/media';
+const { entry, next } = Astro.props;
+const d = entry.data;
+const chapters = chaptersIn(entry.body);
+const hasCover = !!(await findImage(d.cover));
+---
+<Base title={d.title} description={d.short}>
+  <div class="page" data-rail={chapters.length > 1 ? '' : undefined}>
+    {chapters.length > 1 && (
+      <nav class="rail no-print" aria-label="Chapters">
+        <ol>
+          {chapters.map((c, i) => (
+            <li><a href={`#${c.id}`} data-rail-link={c.id}><span class="t-dot num">{String(i + 1).padStart(2, '0')}</span><span class="t-label lbl">{c.title}</span></a></li>
+          ))}
+        </ol>
+      </nav>
+    )}
+
+    <header class="top tone-black">
+      <div class="wrap title">
+        <p class="t-dot big" aria-hidden="true">{String(d.order).padStart(2, '0')}</p>
+        <div>
+          <p class="t-label soft ctx">{d.context} / {d.years}</p>
+          <h1 class="t-display name">{d.title}</h1>
+        </div>
+      </div>
+      <div class="wrap brief">
+        <div class="cell problem">
+          <p class="t-label soft">The problem</p>
+          <p class="t-lede">{d.problem}</p>
+        </div>
+        <div class="cell">
+          <p class="t-label soft">My role</p>
+          <p>{d.role}</p>
+        </div>
+        <div class="cell">
+          <p class="t-label soft">Status</p>
+          <p>{d.status}</p>
+        </div>
+        <div class="cell stack">
+          <p class="t-label soft">Stack</p>
+          <ul class="tags">{d.stack.map((s: string) => <li>{s}</li>)}</ul>
+        </div>
+      </div>
+      {d.stats.length > 0 && <div class="wrap stats"><Stats items={d.stats} /></div>}
+      {hasCover && <div class="cover"><Pic src={d.cover} alt={d.title} sizes="100vw" eager /></div>}
+    </header>
+
+    <slot />
+
+    {next && (
+      <a class="next tone-black" href={`/work/${next.id}/`}>
+        <span class="wrap inner"><span class="t-label soft">Next project</span><span class="t-display t-xl">{next.data.title} &rarr;</span></span>
+      </a>
+    )}
+  </div>
+</Base>
+
+<script>
+  const links = new Map([...document.querySelectorAll<HTMLElement>('[data-rail-link]')].map((a) => [a.dataset.railLink!, a]));
+  if (links.size) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        links.forEach((a) => a.removeAttribute('aria-current'));
+        links.get(e.target.id)?.setAttribute('aria-current', 'true');
+      });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    document.querySelectorAll('[data-chapter]').forEach((c) => io.observe(c));
+  }
+</script>
+
+<style>
+  @media (min-width: 1100px) { .page[data-rail] { --rail: 56px; } }
+  .rail { position: fixed; z-index: 40; left: var(--g); top: 50%; transform: translateY(-50%); mix-blend-mode: difference; color: #fff; display: none; }
+  @media (min-width: 1100px) { .rail { display: block; } }
+  .rail ol { list-style: none; display: flex; flex-direction: column; }
+  .rail a { display: flex; align-items: center; gap: .55rem; padding: .22rem 0; text-decoration: none; }
+  .num { font-size: 1.1rem; opacity: .45; }
+  .lbl { opacity: 0; transform: translateX(-4px); white-space: nowrap; pointer-events: none; }
+  .rail a:hover .num, .rail a[aria-current] .num { opacity: 1; }
+  .rail a:hover .lbl { opacity: 1; transform: none; }
+
+  .top { padding-top: clamp(28px, 4vw, 64px); }
+  .title { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: clamp(14px, 2.4vw, 40px); align-items: end; }
+  .big { font-size: clamp(4rem, 13vw, 15rem); line-height: .78; }
+  .ctx { margin-bottom: .8rem; }
+  .name { font-size: clamp(2.6rem, 8.2vw, 10rem); overflow-wrap: anywhere; }
+  .brief { display: grid; grid-template-columns: 5fr 3fr 2fr 2fr; margin-top: clamp(28px, 4vw, 60px); }
+  .cell { display: flex; flex-direction: column; gap: .55rem; padding: 1rem clamp(10px, 1.3vw, 22px) 1.3rem; border-top: var(--rule) solid #fff; border-right: var(--rule) solid #fff; font-size: .9375rem; line-height: 1.38; }
+  .cell:first-child { padding-left: 0; }
+  .cell:last-child { border-right: 0; }
+  .stats { padding-bottom: clamp(24px, 3vw, 48px); }
+  .cover :global(img) { width: 100%; max-height: 88vh; object-fit: cover; }
+  .next { display: block; text-decoration: none; padding-block: clamp(36px, 6vw, 96px); border-top: var(--rule-heavy) solid #fff; }
+  .next:hover { background: #fff; color: #0a0a0a; }
+  .inner { display: flex; flex-direction: column; gap: .7rem; }
+  @media (max-width: 900px) {
+    .title { grid-template-columns: 1fr; }
+    .brief { grid-template-columns: 1fr 1fr; }
+    .cell.problem { grid-column: 1 / -1; padding-left: 0; border-right: 0; }
+    .cell:nth-child(2) { padding-left: 0; }
+    .cell:nth-child(3) { border-right: 0; }
+    .cell.stack { grid-column: 1 / -1; padding-left: 0; border-right: 0; }
+  }
+</style>

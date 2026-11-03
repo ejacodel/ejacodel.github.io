@@ -1,0 +1,31 @@
+---
+/** A process as hard-edged connected blocks. Scrolls sideways on phones. */
+interface Stage { name: string; text?: string; meta?: string; }
+interface Props { stages: Stage[]; caption?: string; }
+const { stages, caption } = Astro.props;
+---
+<figure class="p">
+  <ol style={`--n:${stages.length}`}>
+    {stages.map((s, i) => (
+      <li>
+        <span class="t-dot n">{String(i + 1).padStart(2, '0')}</span>
+        <b class="t-display name">{s.name}</b>
+        {s.text && <span class="txt">{s.text}</span>}
+        {s.meta && <span class="t-mono meta">{s.meta}</span>}
+      </li>
+    ))}
+  </ol>
+  {caption && <figcaption class="t-mono soft">{caption}</figcaption>}
+</figure>
+<style>
+  .p { margin: 0; min-width: 0; }
+  ol { list-style: none; display: grid; grid-template-columns: repeat(var(--n), minmax(150px, 1fr)); overflow-x: auto; border: var(--rule) solid var(--line); }
+  li { display: flex; flex-direction: column; gap: .5rem; padding: .8rem; border-right: var(--rule) solid var(--line); position: relative; min-height: 13rem; }
+  li:last-child { border-right: 0; }
+  li:hover { background: var(--fg); color: var(--bg); }
+  .n { font-size: 1.4rem; }
+  .name { font-size: 1.45rem; line-height: .95; }
+  .txt { font-size: .8125rem; line-height: 1.32; }
+  .meta { margin-top: auto; font-weight: 500; }
+  figcaption { padding-top: .55rem; max-width: 70ch; }
+</style>

@@ -1,0 +1,61 @@
+---
+/**
+ * The default way to place an image in a page.
+ *   <Figure src="robot/capstan.jpg" alt="..." caption="..." brief="what to shoot" />
+ * panel="white" puts it on a white plate (for meshes and diagrams on white).
+ * fit="contain" shows the whole image. Without it the image fills the frame.
+ * Click to enlarge. Every figure stays where the text needs it, with no carousels.
+ */
+import Pic from './Pic.astro';
+import Placeholder from './Placeholder.astro';
+import { findImage } from '../../lib/media';
+interface Props {
+  src: string; alt?: string; caption?: string; brief?: string; ratio?: string;
+  fit?: 'cover' | 'contain'; panel?: 'white' | 'black'; sizes?: string; kind?: string; invert?: boolean;
+}
+const { src, alt = '', caption, brief, ratio = '4/3', fit = 'cover', panel, sizes, kind = 'Photo', invert = false } = Astro.props;
+const exists = !!(await findImage(src));
+---
+<figure class:list={['fig', panel && `panel-${panel}`, `fit-${fit}`, { invert }]}>
+  <div class="frame" style={`aspect-ratio:${ratio}`} data-zoom={exists ? '' : undefined}>
+    {exists ? <Pic {src} {alt} {sizes} /> : <Placeholder {kind} path={`src/media/${src}`} {brief} {ratio} />}
+  </div>
+  {caption && <figcaption class="t-mono soft">{caption}</figcaption>}
+</figure>
+
+<script>
+  // One shared zoom dialog for all figures.
+  document.addEventListener('click', (e) => {
+    const frame = (e.target as HTMLElement).closest<HTMLElement>('[data-zoom]');
+    const img = frame?.querySelector('img');
+    if (!img) return;
+    let box = document.querySelector<HTMLDialogElement>('dialog.zoom');
+    if (!box) {
+      box = document.createElement('dialog');
+      box.className = 'zoom';
+      box.addEventListener('click', () => box!.close());
+      document.body.append(box);
+    }
+    const big = new Image();
+    big.src = img.currentSrc || img.src;
+    big.srcset = img.srcset;
+    big.sizes = '100vw';
+    big.alt = img.alt;
+    box.replaceChildren(big);
+    box.showModal();
+  });
+</script>
+<style>
+  .fig { margin: 0; min-width: 0; }
+  .frame { position: relative; overflow: hidden; width: 100%; }
+  .frame[data-zoom] { cursor: zoom-in; }
+  .frame :global(img) { width: 100%; height: 100%; object-fit: cover; }
+  .fit-contain .frame :global(img) { object-fit: contain; }
+  .panel-white .frame { background: #fff; outline: var(--rule) solid var(--line); outline-offset: calc(-1 * var(--rule)); }
+  .panel-black .frame { background: #0a0a0a; }
+  .invert .frame :global(img) { filter: invert(1) grayscale(1); }
+  figcaption { padding-top: .55rem; max-width: 70ch; }
+  :global(dialog.zoom) { position: fixed; inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; background: #0a0a0a; border: 0; cursor: zoom-out; padding: 16px; }
+  :global(dialog.zoom::backdrop) { background: #0a0a0a; }
+  :global(dialog.zoom img) { width: 100%; height: 100%; object-fit: contain; }
+</style>

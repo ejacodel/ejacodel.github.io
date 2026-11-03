@@ -1,0 +1,23 @@
+---
+title: Printing a capstan strap as one extrusion line
+date: 2026-03-01
+summary: The tilt axis runs on a 1 mm PETG strap. To print it reliably, I wrote my own G-code generator.
+project: macro-photogrammetry-robot
+tags: [Mechanics, Fabrication]
+---
+
+Capstan drives normally use steel cable. Mine started from the open-source Capstan-Drive design, but replaces the cable with a flat strap, 3D-printed and anchored at both ends with an adjustable tensioner.
+
+## Material
+
+TPU was the first attempt, and I discarded it: too elastic for an axis that has to hold an angle. PETG at 1.0 mm is what's on the machine now.
+
+## Why a custom generator
+
+A slicer isn't built to lay down a strap as one continuous line. So I wrote a small Python tool with a PySide6 GUI that calculates extrusion and flow, generates the G-code and sends it directly to the Bambu Lab A1 over the network.
+
+<Figure src="robot/strap-gcode-tool.png" alt="The strap G-code generator" kind="Screenshot" ratio="16/10" brief="Screenshot of the PySide6 G-code generator." />
+
+<Figure src="robot/strap-printing.jpg" alt="A strap printing" ratio="16/10" brief="The strap being printed, close up." />
+
+<Todo>The date on this post is a placeholder. Fix it, add the photos above, and rewrite this in your own voice.</Todo>

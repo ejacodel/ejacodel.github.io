@@ -1,0 +1,25 @@
+---
+import { nav, site } from '../../data/site';
+const path = Astro.url.pathname;
+---
+<header class="hdr tone-black no-print">
+  <a class="name t-dot" href="/" aria-label={`${site.short}, home`}><span class="full">ACOSTA DE LA RUA</span><span class="compact">E.ACOSTA</span></a>
+  <nav aria-label="Main">
+    {nav.map((n) => <a class="t-label link" href={n.href} aria-current={path.startsWith(n.href) ? 'page' : undefined}>{n.label}</a>)}
+    <a class="t-label pdf" href={site.cvPdf} download>CV PDF &darr;</a>
+  </nav>
+</header>
+<style>
+  .hdr { position: sticky; top: 0; z-index: 50; height: var(--hdr); display: flex; align-items: stretch; justify-content: space-between; padding-left: var(--g); border-bottom: var(--rule) solid #fff; view-transition-name: site-header; }
+  .name { display: flex; align-items: center; font-size: 1.3rem; text-decoration: none; white-space: nowrap; }
+  .compact { display: none; }
+  nav { display: flex; align-items: stretch; }
+  nav a { display: flex; align-items: center; padding-inline: clamp(.65rem, 1.6vw, 1.5rem); text-decoration: none; border-left: var(--rule) solid #fff; }
+  .link:hover, .link[aria-current] { background: #fff; color: #0a0a0a; }
+  .pdf { background: #fff; color: #0a0a0a; white-space: nowrap; }
+  .pdf:hover { background: #0a0a0a; color: #fff; }
+  @media (max-width: 620px) {
+    .full { display: none; } .compact { display: inline; }
+    .name { font-size: 1.05rem; }
+  }
+</style>
