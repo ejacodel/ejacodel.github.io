@@ -37,5 +37,8 @@ const person = {
     <Header />
     <main id="main"><slot /></main>
     {footer && <Footer />}
+    <!-- Cloudflare Web Analytics -->
+    <script is:inline type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "d23e30894b794616b8a2888c38401192"}'></script>
+    <!-- End Cloudflare Web Analytics -->
   </body>
 </html>
